@@ -50,7 +50,7 @@ export class PlacementScreen {
       h('div', { class: 'row' },
         button('Start from the very beginning', () => this.finish(1), 'small'),
         button("Let's go! (Enter)", () => this.startBlock(), 'gold big'))));
-    this.game.say("Don't worry, it's not a test. Well, it's a tiny test. A gnome-sized test.", 6);
+    this.game.say("Don't worry, it's not a test! It's a gnome-work check. No pressure. Well, a little gnome-pressure.", 6);
   }
 
   startBlock() {
@@ -112,7 +112,7 @@ export class PlacementScreen {
     this.bi++;
     if (this.bi >= this.blocks.length) return this.finish(MAX_STAGE);
     this.phase = 'between';
-    this.game.say(['Splendid!', 'Ooh, nice fingers!', 'Easy peasy!', 'Look at you go!'][this.bi % 4], 1.5);
+    this.game.say(['Splendid!', 'Easy peasy, lemon squeezy!', 'Key-rrific!', 'You nailed it! Like a tiny garden fence!'][this.bi % 4], 1.5);
     setTimeout(() => this.startBlock(), 700);
   }
 
@@ -139,7 +139,7 @@ export class PlacementScreen {
         : 'We\'ll start with F and J: the keys with the little bumps. Every typist starts there!'),
       h('p', { class: 'small' }, 'You earned 🌰 10 acorns for trying. Spend them at Gnome Depot!'),
       h('div', { class: 'row' }, button('Back to the garden (Enter)', () => this.done(), 'gold big'))));
-    this.game.say(s.stage > GNOME_ROW_STAGE ? 'You can already type Gnome Row! I gnome you could do it!' : "Every great typist starts with F and J. Let's do it together!", 6);
+    this.game.say(s.stage > GNOME_ROW_STAGE ? 'You can already type Gnome Row! I gnome you could do it!' : "Every great typist starts with F and J. It's the root of it all! Like a carrot!", 6);
   }
 
   done() { this.game.go('home', { say: 'Try Type & Play to meet your new keys!' }); }

@@ -28,7 +28,7 @@ Progress is saved in the browser on that computer. **Grown-ups → Download back
 
 | | |
 |---|---|
-| 🏪 **Gnome Depot intro** | The first time you play, an unpainted gnome is waiting in the clearance aisle. Pick a style (beard, braids or a bob), paint its hat, shirt, hair and face (the first brushstroke wakes it up!), name it and take it home. |
+| 🏪 **Gnome Depot intro** | The first time you play, an ordinary-looking gnome (red hat, blue shirt) is waiting in the clearance aisle. Pick a style (beard, braids or a bob), repaint its hat, shirt, hair and face (the first brushstroke wakes it up!), name it and take it home. |
 | 🎯 **Placement check** | "Let's see what your fingers already know!" One short line per group of keys. Lines typed accurately and steadily mark those keys as already learned, so a kid who has practised at school doesn't start back at F and J. |
 | ⌨️ **Type & Play** | Shows the stage, a little keyboard colored by how solid each key is, and progress toward the next keys. |
 | ✨ **Meet your new keys** | When new keys unlock, a short three-line lesson: a drill, a mix of "gnome spells", then real words. |
@@ -62,9 +62,9 @@ Weak and slow keys show up more often in the words and spells. Mistakes never ne
 ## Project layout
 
 ```
-index.html, style.css      page + garden-style UI
+index.html, style.css      page + pixel-font garden UI
 vendor/                    three.js r170 (3D engine, MIT) + two add-ons
-fonts/                     Grandstander, Nunito, Atkinson Hyperlegible Mono (OFL)
+fonts/                     Press Start 2P + Pixelify Sans, same as Pocket Goblin (OFL)
 src/
   main.js                  startup, game loop, keyboard routing
   voxel.js                 block models: matte blocks for scenery, glazed blocks for the gnome and items

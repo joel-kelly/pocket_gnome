@@ -1,5 +1,6 @@
-// First time: Gnome Depot. In the clearance aisle stands one unpainted gnome.
-// Paint it (it wakes up with the first brushstroke!), name it, take it home.
+// First time: Gnome Depot. In the clearance aisle stands one ordinary-looking
+// garden gnome. Repaint it (it wakes up with the first brushstroke!), name it,
+// take it home.
 import * as THREE from '../../vendor/three.module.min.js';
 import { h, button } from '../ui.js';
 import { sfx } from '../audio.js';
@@ -9,8 +10,11 @@ import { PAINTS, DEFAULT_PAINT, STYLES } from '../gnomeModel.js';
 import { addLights } from '../world.js';
 import { FX } from '../fx.js';
 
-const BISQUE = '#efe8dc'; // unpainted ceramic
-const UNPAINTED = { hat: BISQUE, shirt: BISQUE, beard: BISQUE, skin: BISQUE, boots: BISQUE };
+// The other (ordinary, not magical) gnomes on the shelf.
+const NEIGHBORS = [
+  { hat: '#3f9a4a', shirt: '#c8423a', beard: '#b9b6b0', skin: '#e0a97e', style: 'beard' },
+  { hat: '#7a4bb8', shirt: '#e8b83a', beard: '#7a4a2a', skin: '#f1c29c', style: 'braids' },
+];
 const NAMES = ['Gnorman', 'Gnorbert', 'Gnelly', 'Gnoah', 'Gnancy', 'Gnatalie', 'Gnigel', 'Gnora', 'Gnicholas', 'Gnaomi', 'Pip', 'Bramble', 'Thistle', 'Clover', 'Pebble', 'Mossy'];
 const PARTS = [['hat', 'Hat'], ['shirt', 'Shirt'], ['beard', 'Hair'], ['skin', 'Face']];
 
@@ -44,9 +48,9 @@ export class DepotScreen {
     mesh.receiveShadow = true;
     scene.add(mesh);
     // two other (ordinary, not magical) gnomes still for sale
-    for (const [x, rot] of [[-22, 0.3], [-40, 0.15]]) {
+    for (const [i, [x, rot]] of [[-22, 0.3], [-40, 0.15]].entries()) {
       const g = new Gnome();
-      g.setPaint(UNPAINTED);
+      g.setPaint(NEIGHBORS[i]);
       g.statue = true;
       g.object.position.set(x, 0, -2);
       g.object.rotation.y = rot;
@@ -64,8 +68,7 @@ export class DepotScreen {
     gnome.object.position.set(0, 0, 0);
     gnome.object.rotation.set(0, 0, 0);
     gnome.statue = true;
-    this.paint = { ...DEFAULT_PAINT, ...UNPAINTED };
-    this.painted = {};
+    this.paint = { ...DEFAULT_PAINT };
     gnome.setPaint(this.paint);
     this.game.applyOutfit();
     this.render();
@@ -88,7 +91,7 @@ export class DepotScreen {
     const rows = PARTS.map(([part, label]) => {
       const row = h('div', { class: 'swatches' });
       for (const [nm, hex] of Object.entries(PAINTS[part])) {
-        const sw = h('button', { class: 'swatch', title: nm, style: { background: hex }, onclick: () => this.dab(part, hex, row, sw) });
+        const sw = h('button', { class: 'swatch' + (this.paint[part] === hex ? ' on' : ''), title: nm, style: { background: hex }, onclick: () => this.dab(part, hex, row, sw) });
         row.append(sw);
       }
       return h('div', { class: 'paint-row' }, h('span', { class: 'lbl' }, label), row);
@@ -99,7 +102,7 @@ export class DepotScreen {
     }, label)));
     this.root.replaceChildren(h('div', { class: 'depot-card' },
       h('div', { class: 'sign' }, 'GNOME DEPOT'),
-      h('p', {}, 'Down the clearance aisle, between the flowerpots, stands one little unpainted gnome. Nobody has picked it... until now.'),
+      h('p', {}, 'Down the clearance aisle, between the flowerpots, stands one little garden gnome. It looks ordinary. It is NOT ordinary. Give it a fresh coat of paint and see what happens...'),
       h('label', { for: 'kid-name' }, "What's YOUR name?"), this.kid,
       h('label', {}, 'Paint your gnome'), h('div', { class: 'paint-row' }, h('span', { class: 'lbl' }, 'Style'), styles), ...rows,
       h('label', { for: 'gnome-name' }, 'Name your gnome'), h('div', { class: 'name-row' }, this.name, dice),
@@ -111,34 +114,36 @@ export class DepotScreen {
 
   setStyle(id) {
     this.paint.style = id;
-    this.painted.style = id;
     this.game.gnome.setPaint(this.paint);
     sfx.place();
-    if (!this.game.gnome.statue) this.game.gnome.act('hop');
+    if (this.game.gnome.statue) this.wake(); else this.game.gnome.act('hop');
   }
 
   async dab(part, hex, row, sw) {
     const { gnome } = this.game;
     row.querySelectorAll('.swatch').forEach((el) => el.classList.remove('on'));
     sw.classList.add('on');
-    const first = this.game.gnome.statue;
-    this.painted[part] = hex;
+
     this.paint[part] = hex;
     if (part === 'shirt') this.paint.boots = DEFAULT_PAINT.boots;
     gnome.setPaint(this.paint);
     sfx.place();
     this.fx.sparkles(gnome.headTop(), 6);
-    if (first) {
-      // The magic moment: the first brushstroke wakes the gnome up.
-      gnome.statue = false;
-      sfx.unlock();
-      await gnome.act('shake');
-      gnome.act('cheer');
-      this.game.say('Oh! Oh my! Hello there! That tickles!', 4);
-    } else {
+    if (gnome.statue) this.wake();
+    else {
       gnome.act('hop');
-      if (Math.random() < 0.4) this.game.say(['Ooh, I like that one!', 'Very fetching!', 'Is that my color? I think that\'s my color.'][Math.floor(Math.random() * 3)], 2.5);
+      if (Math.random() < 0.4) this.game.say(['Ooh, I\'m tickled pink! Or whatever color that is!', 'Paint-astic!', 'That\'s a hue-ge improvement!', 'Dye-namite choice!'][Math.floor(Math.random() * 3)], 2.5);
     }
+  }
+
+  // The magic moment: the first brushstroke wakes the gnome up.
+  async wake() {
+    const { gnome } = this.game;
+    gnome.statue = false;
+    sfx.unlock();
+    await gnome.act('shake');
+    gnome.act('cheer');
+    this.game.say("Oh! Oh my gnome-ness! That tickles! Hello there!", 4);
   }
 
   takeHome() {
@@ -146,8 +151,7 @@ export class DepotScreen {
     const s = this.state;
     s.kidName = this.kid.value.trim() || 'Friend';
     s.gnomeName = this.name.value.trim() || NAMES[Math.floor(Math.random() * NAMES.length)];
-    // Anything left unpainted gets the classic gnome colors.
-    s.paint = { ...DEFAULT_PAINT, ...this.painted };
+    s.paint = { ...this.paint };
     s.onboarded = true;
     S.save();
     gnome.statue = false;

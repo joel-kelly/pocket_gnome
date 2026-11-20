@@ -40,7 +40,7 @@ export function openParent(game) {
       const rec = keyRecord(s, key);
       const open = unlocked.has(key) || id === ' ';
       const tip = open ? `${label || id.toUpperCase() || 'Space'}: ${rec.right} right, ${rec.wrong} slips, level ${rec.box}/5${rec.avg ? `, avg ${rec.avg.toFixed(2)}s` : ''}` : 'Not unlocked yet';
-      r.append(h('div', { class: 'hk' + (open ? '' : ' locked'), title: tip, style: { width: (w || 1) * 2.4 + 'em', background: open && id !== ' ' ? heatColor(rec, fast) : '' } },
+      r.append(h('div', { class: 'hk' + (open ? '' : ' locked') + (key === 'Shift' ? ' shift' : ''), title: tip, style: { width: (w || 1) * 2.4 + 'em', background: open && id !== ' ' ? heatColor(rec, fast) : '' } },
         h('b', {}, id === ' ' ? 'space' : label || id.toUpperCase()), open && rec.avg ? h('small', {}, rec.avg.toFixed(1)) : null));
     }
     heat.append(r);

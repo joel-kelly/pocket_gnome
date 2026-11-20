@@ -65,6 +65,10 @@ export class AstroScreen {
       ground.box(tx, 0, tz, tx + 2, th, tz + 2, '#7a5230');
       ground.sphere(tx + 1, th + 4, tz + 1, rand(6, 9), (x, y, z) => (hash3(x, y, z) < 0.3 ? '#3f8a36' : '#4f9a3f'), rand(5, 8));
     }
+    const meadow = new THREE.Mesh(new THREE.PlaneGeometry(1600, 1600), new THREE.MeshLambertMaterial({ color: '#68a849' }));
+    meadow.rotation.x = -Math.PI / 2;
+    meadow.position.y = -0.05;
+    scene.add(meadow);
     const groundMesh = buildMesh(ground, { jitter: 0.08 });
     groundMesh.receiveShadow = true;
     scene.add(groundMesh);
@@ -362,8 +366,9 @@ export class AstroScreen {
     this.craft.rotation.z = 0.04 * Math.sin(t * 1.1);
     this.camY += ((this.alt) - this.camY) * Math.min(1, dt * 5);
     // The craft (pot to balloons) sits in the top half; the typing card covers the bottom.
-    this.camera.position.set(0, this.camY + 16, 245);
-    this.camera.lookAt(0, this.camY + 6, 0);
+    // The craft (pot to balloons) sits on the left; the typing card is on the right.
+    this.camera.position.set(52, this.camY + 40, 190);
+    this.camera.lookAt(52, this.camY + 33, 0);
     this.sun.position.set(40, this.alt + 80, 60);
     this.sun.target.position.set(0, this.alt, 0);
     this.scene.background.copy(this.skyColor(this.alt));
@@ -389,8 +394,8 @@ export class AstroScreen {
     this.gerald.visible = show;
     this.geraldEl.classList.toggle('hidden', !show);
     if (!show) return;
-    this.gerald.position.set(30 + 3 * Math.sin(t * 0.8), this.alt + 34 + 2 * Math.sin(t * 2.3), 6);
-    this.gerald.rotation.y = -0.9;
+    this.gerald.position.set(-26 + 3 * Math.sin(t * 0.8), this.alt + 50 + 2 * Math.sin(t * 2.3), 6);
+    this.gerald.rotation.y = 0.9;
     this.gerWings.forEach((w, i) => { w.rotation.z = (i ? -1 : 1) * 0.6 * Math.sin(t * 16); });
     if (t > this.geraldAt) {
       this.geraldAt = t + 7;

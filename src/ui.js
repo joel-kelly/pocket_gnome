@@ -30,7 +30,7 @@ export function say(text, seconds) {
   if (!text) return;
   bubble.full = text;
   bubble.shown = 0;
-  bubble.until = performance.now() / 1000 + (seconds ?? Math.min(6, 1.8 + text.length * 0.05));
+  bubble.until = performance.now() / 1000 + (seconds ?? Math.min(9, 2 + text.length * 0.06));
   bubble.babbled = false;
 }
 export function hush() { bubble.until = 0; }

@@ -9,7 +9,7 @@ import { FX } from './fx.js';
 const VIEWS = {
   home:  { pos: [0, 27, 98],   target: [0, 14, 0] },
   side:  { pos: [24, 25, 92],  target: [24, 13, 0] },  // gnome on the left, panel on the right
-  type:  { pos: [0, 34, 150],  target: [0, -3, 0] },   // gnome up top, typing pad below
+  type:  { pos: [30, 24, 118], target: [30, 13, 0] },  // gnome on the left, typing card on the right
   decor: { pos: [20, 44, 150], target: [20, 6, -8] },  // the whole garden, left of the panel
 };
 

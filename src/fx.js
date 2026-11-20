@@ -13,7 +13,7 @@ function spriteTex(text) {
     const x = c.getContext('2d');
     x.textAlign = 'center'; x.textBaseline = 'middle';
     if (text.length > 2) {
-      x.font = '800 22px Grandstander, sans-serif';
+      x.font = '14px "Press Start 2P", monospace';
       x.lineWidth = 5; x.strokeStyle = '#ffffff'; x.strokeText(text, 32, 34);
       x.fillStyle = '#5a3a8a'; x.fillText(text, 32, 34);
     } else {

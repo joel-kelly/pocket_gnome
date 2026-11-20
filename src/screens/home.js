@@ -149,7 +149,7 @@ export class HomeScreen {
     if (this.t > this.chatAt) {
       this.chatAt = this.t + 18 + Math.random() * 22;
       const needy = this.game.S.neediest();
-      this.game.line(needy ? { hunger: 'hungry', thirst: 'thirsty', tidy: 'untidy', joy: 'bored' }[needy] : Math.random() < 0.25 ? 'happy' : 'idle', 6);
+      this.game.line(needy ? { hunger: 'hungry', thirst: 'thirsty', tidy: 'untidy', joy: 'bored' }[needy] : Math.random() < 0.25 ? 'happy' : 'idle');
     }
   }
 

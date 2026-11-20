@@ -45,7 +45,7 @@ export class LessonScreen {
     this.root.replaceChildren(h('div', { class: 'type-screen' }, this.card));
     this.pad.setText(this.lines[0], this.lines[1] || '');
     this.markDots();
-    this.game.say(mode === 'lesson' ? 'New keys! Take it slow. Accuracy first, speed later.' : 'Nice and steady. No rush!', 4);
+    this.game.say(mode === 'lesson' ? 'New keys! Slow and steady wins the race. Just ask any snail!' : "Nice and steady. We've got all the thyme in the world!", 4);
   }
   exit() { this.pad?.destroy(); this.root.innerHTML = ''; }
 

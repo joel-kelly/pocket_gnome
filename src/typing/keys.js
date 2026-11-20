@@ -62,7 +62,7 @@ export const isLeftHand = (k) => (fingerOf(k) || '').startsWith('L');
 export const KEY_ROWS = [
   [['q'], ['w'], ['e'], ['r'], ['t'], ['y'], ['u'], ['i'], ['o'], ['p']],
   [['a'], ['s'], ['d'], ['f'], ['g'], ['h'], ['j'], ['k'], ['l'], [';']],
-  [['ShiftLeft', 'Shift', 1.6], ['z'], ['x'], ['c'], ['v'], ['b'], ['n'], ['m'], [','], ['.'], ['ShiftRight', 'Shift', 1.6]],
+  [['ShiftLeft', '⇧', 1.6], ['z'], ['x'], ['c'], ['v'], ['b'], ['n'], ['m'], [','], ['.'], ['ShiftRight', '⇧', 1.6]],
   [[' ', '', 6]],
 ];
 // Row offsets in key widths, like a real keyboard.

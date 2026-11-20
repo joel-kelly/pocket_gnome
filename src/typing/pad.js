@@ -40,14 +40,14 @@ export class TypePad {
     const kb = h('div', { class: 'kb' });
     this.keyEls = {};
     KEY_ROWS.forEach((row, ri) => {
-      const r = h('div', { class: 'kb-row', style: { marginLeft: ROW_OFFSET[ri] * 2.6 + 'em' } });
+      const r = h('div', { class: 'kb-row', style: { marginLeft: `calc(${ROW_OFFSET[ri]} * (var(--key) + 5px))` } });
       for (const [id, label, w] of row) {
         const fid = fingerOf(id);
         const isShift = id.startsWith('Shift');
         const open = id === ' ' || unlocked.has(id) || (isShift && shiftOn);
         const k = h('div', {
-          class: 'kb-key' + (open ? '' : ' locked') + (id === 'f' || id === 'j' ? ' bump' : ''),
-          style: { width: (w || 1) * 2.4 + 'em', '--fc': fid ? FINGERS[fid].color : '#ddd' },
+          class: 'kb-key' + (open ? '' : ' locked') + (id === 'f' || id === 'j' ? ' bump' : '') + (isShift ? ' shift' : ''),
+          style: { width: `calc(${w || 1} * var(--key) + ${((w || 1) - 1) * 5}px)`, '--fc': fid ? FINGERS[fid].color : '#ddd' },
         }, label ?? (id === ';' ? ';' : id.toUpperCase()));
         this.keyEls[id] = k;
         r.append(k);
