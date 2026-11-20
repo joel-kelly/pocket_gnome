@@ -15,7 +15,7 @@ A typing game for a 10-year-old who has had some typing practice at school but i
 
 | Stat | Goes up with |
 |---|---|
-| 🍓 Hunger | Snacks (berry tart, mushroom soup, acorn cookies...) |
+| 🍓 Hunger | Snacks (berry tart, mushroom soup, acorn cookies, crumpets, acorn muffins...) |
 | 💧 Thirst | Drinks (dewdrop tea, lemonade, dandelion pop, which gives hiccups) |
 | 🧹 Tidy | Tidy Up (sweep, polish, dust) |
 | 🌼 Joy | Playing games, poking the gnome, garden decor |

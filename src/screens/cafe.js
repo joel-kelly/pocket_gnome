@@ -10,7 +10,7 @@ import { VoxelModel, buildMesh, buildGlazed, disposeGlazed, hash3 } from '../vox
 import { addLights, skyTexture, flower } from '../world.js';
 import { FX } from '../fx.js';
 import { getModel } from '../items.js';
-import { CRITTERS, crumpetModel, muffinModel } from '../critters.js';
+import { CRITTERS } from '../critters.js';
 import { TextPicker } from '../typing/engine.js';
 import { TypePad } from '../typing/pad.js';
 import { afterRound } from './games.js';
@@ -89,10 +89,6 @@ export function makeOrder(picker, critter, { maxLen = 24, two = 0 } = {}) {
 }
 
 // ---------- models ----------
-const snackModels = {};
-function snackModel(id) {
-  return (snackModels[id] ||= id === 'crumpet' ? crumpetModel() : id === 'muffin' ? muffinModel() : getModel(id));
-}
 
 export class CafeScreen {
   constructor(game) {
@@ -174,7 +170,7 @@ export class CafeScreen {
     const stand = new VoxelModel(null);
     stand.cyl(0.5, 0.5, 3.6, 0, 1, '#fbf7ee'); stand.set(0, 1, 0, '#e2b93b'); stand.set(0, 2, 0, '#e2b93b');
     stand.cyl(0.5, 0.5, 2.6, 3, 4, '#fbf7ee');
-    const sc = crumpetModel();
+    const sc = getModel('crumpet');
     const standMesh = new THREE.Group();
     standMesh.add(buildGlazed(stand));
     for (const [dx, dz, y] of [[-1.5, 0, 1], [1.5, 0, 1], [0, 0, 4]]) {
@@ -382,7 +378,7 @@ export class CafeScreen {
     const things = [];
     for (const it of c.order.items) for (let i = 0; i < Math.min(3, it.n); i++) things.push(it.id);
     things.slice(0, 4).forEach((id, i, all) => {
-      const m = buildGlazed(snackModel(id), { offset: [-5, 0, -5] });
+      const m = buildGlazed(getModel(id), { offset: [-5, 0, -5] });
       m.scale.setScalar(0.42);
       const a = (i / all.length) * Math.PI * 2;
       const r = all.length > 1 ? 1.9 : 0;

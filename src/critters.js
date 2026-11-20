@@ -1,4 +1,4 @@
-// Woodland critters for the Crumpet Café, plus the café's own bakes.
+// Woodland critters for the Crumpet Café.
 // Each critter is centered on x/z = 0, sits on y = 0 and faces +z.
 // `head` is roughly how tall the critter is (for order bubbles and trays).
 import { VoxelModel, hash3 } from './voxel.js';
@@ -89,21 +89,3 @@ export const CRITTERS = [
   { id: 'frog', name: 'Frog', build: frog, likes: ['dandelionpop', 'soup', 'lemonade'] },
   { id: 'mouse', name: 'Mouse', build: mouse, likes: ['crumpet', 'honeytoast', 'berrytart'] },
 ];
-
-// ---- the café's own bakes (snack-sized, in the same 10x10x10 grid as the shop snacks) ----
-export function crumpetModel() {
-  const m = new VoxelModel([10, 10, 10]);
-  m.cyl(5, 5, 3.8, 0, 2, (x, y, z) => (y === 0 ? '#a8703c' : '#d9a35a'));
-  // the famous holes on top, and a pat of butter
-  m.paint((x, y, z, c) => (y === 1 && hash3(x, y, z) < 0.3 ? '#b8834a' : null));
-  m.box(4, 2, 4, 6, 3, 6, '#f8e27a');
-  return m;
-}
-export function muffinModel() {
-  const m = new VoxelModel([10, 10, 10]);
-  m.sphere(5, 3.5, 5, 3.6, (x, y, z) => (hash3(x, y, z) < 0.15 ? '#5a3a1e' : '#a8703c'), 2.5); // muffin top
-  for (const [x, y, z] of [...m.each()]) if (y < 3) m.delete(x, y, z);
-  m.cone(5, 5, 2.6, 3.2, 0, 3, (x, y, z) => ((x + z) % 2 ? '#e8c97a' : '#d8b860'));       // paper cup
-  m.set(5, 6, 5, '#7a4a24'); m.set(5, 7, 5, '#5a7a2a'); // acorn cap on top
-  return m;
-}
