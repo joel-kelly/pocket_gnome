@@ -9,6 +9,8 @@ import { AstroScreen } from './screens/astro.js';
 import { LessonScreen } from './screens/lesson.js';
 import { PlacementScreen } from './screens/placement.js';
 import { DepotScreen } from './screens/depot.js';
+import { BeetScreen } from './screens/beet.js';
+import { MolesScreen } from './screens/moles.js';
 
 const state = S.load();
 setSoundEnabled(state.settings.sound);
@@ -110,6 +112,8 @@ game.screens.astro = new AstroScreen(game);
 game.screens.lesson = new LessonScreen(game);
 game.screens.placement = new PlacementScreen(game);
 game.screens.depot = new DepotScreen(game);
+game.screens.beet = new BeetScreen(game);
+game.screens.moles = new MolesScreen(game);
 
 game.applyOutfit();
 game.applyMood();

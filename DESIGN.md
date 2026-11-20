@@ -80,8 +80,8 @@ Works like Pocket Goblin's times tables, with **keys instead of fact families**.
 | Game | Unlocks | Idea |
 |---|---|---|
 | 🎈 **Astrognome** | From the start (MVP) | The gnome sits in a flowerpot carried by balloons. The balloons slowly lose air; every right key puffs them up, and finished words add more. Mistakes make a balloon wheeze. Garden → rooftops → clouds → Gerald's sky → jets → stars → the Moon. Height is the score. |
-| 🌱 Seed Sprint | Real short words | 60 seconds, every word plants a seed. See your garden grow at the end. |
-| 🐹 Mole Patrol | Most letters | Moles pop up holding words; typing the word boops them back down. |
+| 🥕 **Beet the Clock** | Stage 6 (E and I) | 60 seconds in the veggie patch. Every word plants a veggie; quick words grow big ones, 5 clean words in a row grow a golden beet. A full patch gets harvested so you can keep going. |
+| 🐹 **Mole Patrol** | Stage 10 (W and M) | Moles pop up holding word signs. The one that's been up longest glows: type its word to boop it down. Moles left waiting nibble a carrot. Keep a carrot for 2 minutes and the moles give up. |
 | 🍄 Toadstool Tea Room | Phrases with spaces | Woodland critters order ("two acorn muffins please"); type their order. |
 | ✏️ Gnomework | Simple sentences (capitals, periods, Backspace) | The gnome wrote a letter to Grandgnome full of typos. Find and fix them. |
 | 🥁 Metrognome | ? | Type along to a beat, for steady rhythm. |

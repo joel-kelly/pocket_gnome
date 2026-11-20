@@ -5,10 +5,11 @@ import { STAGES, MAX_STAGE, GNOME_ROW_STAGE, KEY_ROWS, FINGERS, fingerOf, keysUp
 import { stageProgress, checkUnlock, keyRecord, currentStage, SOLID } from '../typing/engine.js';
 import { needKeyboardNote } from './home.js';
 
-// Games still to come. They unlock (and get built!) as typing grows.
-const COMING = [
-  { emo: '🌱', name: 'Seed Sprint', stage: 6, what: 'Type words to plant a garden in 60 seconds.' },
-  { emo: '🐹', name: 'Mole Patrol', stage: 10, what: 'Moles pop up holding words. Type to boop them!' },
+// The games. Each unlocks at a typing stage; ones without a screen are still to come.
+export const GAMES = [
+  { id: 'astro', emo: '🎈', name: 'Astrognome', stage: 1, what: 'Type to keep the balloons full. How high can you fly?', best: (s) => `Best: ${s.best.astro || 0} m` },
+  { id: 'beet', emo: '🥕', name: 'Beet the Clock', stage: 6, what: 'Every word plants a veggie. How big a harvest can you grow in 60 seconds?', best: (s) => `Biggest harvest: ${s.best.beet || 0}` },
+  { id: 'moles', emo: '🐹', name: 'Mole Patrol', stage: 10, what: 'Moles pop up holding words. Type to boop them before they nibble the carrots!', best: (s) => `Most moles booped: ${s.best.moles || 0}` },
   { emo: '🍄', name: 'Toadstool Tea Room', stage: 13, what: 'Woodland critters order snacks. Type their orders.' },
   { emo: '✏️', name: 'Gnomework', stage: 15, what: 'Fix the typos in a letter to Grandgnome.' },
 ];
@@ -55,18 +56,23 @@ export function openGames(game) {
       : h('p', { class: 'small' }, stage >= MAX_STAGE ? 'You have every key! Now it\'s all about speed and accuracy.' : 'A grown-up picked this stage.'),
     needsLesson ? button(`✨ Meet your new keys: ${keyList(nowLearning.keys)}`, () => { closePanel(); game.go('lesson', { stage, mode: 'lesson' }); }, 'gold wide') : null);
 
-  const games = h('div', { class: 'game-list' },
-    h('button', { class: 'game-card', onclick: () => { sfx.click(); closePanel(); game.go('astro'); } },
-      h('span', { class: 'gemo' }, '🎈'),
-      h('span', { class: 'gtxt' }, h('b', {}, 'Astrognome'), h('span', {}, 'Type to keep the balloons full. How high can you fly?'),
-        h('span', { class: 'best' }, `Best: ${s.best.astro || 0} m`))),
-    h('button', { class: 'game-card', onclick: () => { sfx.click(); closePanel(); game.go('lesson', { stage, mode: 'practice' }); } },
-      h('span', { class: 'gemo' }, '📜'),
-      h('span', { class: 'gtxt' }, h('b', {}, 'Practice Scrolls'), h('span', {}, 'Five calm lines of practice. No rush, no balloons.'))),
-    ...COMING.map((g) => h('div', { class: 'game-card locked' },
-      h('span', { class: 'gemo' }, g.emo),
-      h('span', { class: 'gtxt' }, h('b', {}, g.name), h('span', {}, g.what),
-        h('span', { class: 'best' }, stage >= g.stage ? 'Coming soon!' : `🔒 Unlocks at stage ${g.stage} · coming soon`)))));
+  const card = (gm) => {
+    const open = gm.id && stage >= gm.stage;
+    if (!open) {
+      return h('div', { class: 'game-card locked' }, h('span', { class: 'gemo' }, gm.emo),
+        h('span', { class: 'gtxt' }, h('b', {}, gm.name), h('span', {}, gm.what),
+          h('span', { class: 'best' }, !gm.id ? (stage >= gm.stage ? 'Coming soon!' : `🔒 Stage ${gm.stage} · coming soon`) : `🔒 Unlocks at stage ${gm.stage} (${STAGES[gm.stage - 1].name})`)));
+    }
+    return h('button', { class: 'game-card', onclick: () => { sfx.click(); closePanel(); game.go(gm.id); } },
+      h('span', { class: 'gemo' }, gm.emo),
+      h('span', { class: 'gtxt' }, h('b', {}, gm.name), h('span', {}, gm.what), h('span', { class: 'best' }, gm.best(s))));
+  };
+  const practice = h('button', { class: 'game-card', onclick: () => { sfx.click(); closePanel(); game.go('lesson', { stage, mode: 'practice' }); } },
+    h('span', { class: 'gemo' }, '📜'),
+    h('span', { class: 'gtxt' }, h('b', {}, 'Practice Scrolls'), h('span', {}, 'Five calm lines of practice. No rush, no balloons.')));
+  const playable = GAMES.filter((gm) => gm.id && stage >= gm.stage);
+  const later = GAMES.filter((gm) => !(gm.id && stage >= gm.stage));
+  const games = h('div', { class: 'game-list' }, ...playable.map(card), practice, ...later.map(card));
 
   openPanel('Type & Play', h('div', {}, needKeyboardNote(), progress, games), { onClose: () => game.world.setView('home') });
 }
@@ -88,6 +94,7 @@ export function afterRound(game) {
       h('h2', {}, `New keys: ${keyList(st.keys)}!`),
       h('p', {}, st.tip),
       h('div', { class: 'chips' }, fingers),
+      ...GAMES.filter((gm) => gm.id && gm.stage === next).map((gm) => h('div', { class: 'big-banner' }, `${gm.emo} New game: ${gm.name}!`)),
       miniKeyboard(s, { highlight: st.keys }),
       h('div', { class: 'row' },
         button('Later', () => m.close(), 'small'),

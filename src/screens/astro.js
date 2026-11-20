@@ -11,24 +11,12 @@ import { ASTRO_ZONES, LINES, pick } from '../lines.js';
 import { TextPicker, target } from '../typing/engine.js';
 import { TypePad } from '../typing/pad.js';
 import { afterRound } from './games.js';
+import { pace, tunePace } from '../pace.js';
 
 const SKY = [[0, '#9fd0ee'], [250, '#7ab8ea'], [500, '#4a78c8'], [700, '#24306e'], [900, '#0e1236'], [99999, '#05060f']];
 const BALLOON_COLORS = ['#e8513a', '#f4d03f', '#4a8ae0', '#6abf4a', '#f19bc0', '#9a7ae0', '#ff9a3a', '#3ac0c0'];
 const N_BALLOONS = 8;
 const rand = (a, b) => a + Math.random() * (b - a);
-
-// Pace: how fast the balloons lose air (1 = normal).
-const PACES = { relaxed: 0.7, moderate: 1, aggressive: 1.25 };
-function pace(state) {
-  const p = state.settings.pace || 'auto';
-  return PACES[p] ?? state.autoPace?.astro ?? 1;
-}
-function tunePace(state, result) {
-  if ((state.settings.pace || 'auto') !== 'auto') return;
-  const cur = state.autoPace?.astro ?? 1;
-  const next = result === 'struggled' ? Math.max(0.6, cur - 0.1) : result === 'great' ? Math.min(1, cur + 0.05) : cur;
-  state.autoPace = { ...(state.autoPace || {}), astro: next };
-}
 
 export class AstroScreen {
   constructor(game) {
@@ -249,7 +237,7 @@ export class AstroScreen {
   start() {
     const s = this.state;
     this.picker = new TextPicker(s);
-    this.pace = pace(s);
+    this.pace = pace(s, 'astro');
     this.flightT = 0; this.maxAlt = 0; this.zone = 0; this.lowWarned = false; this.quitted = false;
     this.air = 70; this.streak = 0; this.bestStreak = 0; this.wrongRow = 0;
     this.geraldAt = 0;
@@ -446,7 +434,7 @@ export class AstroScreen {
     S.addAcorns(acorns);
     s.history.push({ t: Date.now(), game: 'astro', words: this.pad.stats.words, acc: this.pad.accuracy, wpm: this.pad.wpm, score: height });
     if (s.history.length > 200) s.history.shift();
-    if (!this.quitted && this.pad.stats.right >= 10) tunePace(s, this.flightT < 35 ? 'struggled' : this.flightT >= 90 ? 'great' : 'ok');
+    if (!this.quitted && this.pad.stats.right >= 10) tunePace(s, 'astro', this.flightT < 35 ? 'struggled' : this.flightT >= 90 ? 'great' : 'ok');
     if (this.pad.stats.right > 0) S.addStat('joy', 12);
     S.save();
     this.bestPill.textContent = `Best: ${s.best.astro || 0} m`;

@@ -117,6 +117,17 @@ export const LINES = {
   astroWrong: ["Wobbly!", "Steady!", "Whoa there!"],
   astroLand: ["Good thing I brought my umbrella! I'm a fall-er of style!", "What a ride! I'm head over heels! Well, hat over boots.", "Again! Again! That was up-lifting!"],
   newBest: ["A NEW RECORD! Call the Gnome-ness Book of World Records!", "Highest ever! That's a sky-high score!"],
+  // Beet the Clock
+  beetStart: ["Ready, set, GROW! Let's beet the clock!", "Time to turnip the heat!", "Lettuce get planting! Every word is a seed!"],
+  beetGrow: ["Look at it grow! It's un-BEET-able!", "Grow-tastic!", "That's a big dill!", "Squash-tastic!", "You've got a green thumb! Ten green thumbs!"],
+  beetGolden: ["A GOLDEN BEET! That's the root of all success!", "Golden! You're on a roll! A golden roll!"],
+  beetEnd: ["What a harvest! You really beet it!", "Look at all those veggies! I'm so proud I could turnip!", "Time's up! That's a hoe-down showdown!"],
+  // Mole Patrol
+  moleStart: ["Moles ahead! Boop them back down before they nibble our carrots!", "Holy moley! Here they come!", "Guard the carrots! This is a mole-y serious mission!"],
+  moleBoop: ["Boop!", "Holy moley!", "Mole-y cow!", "Back you go! Burrow-ly a problem!", "Guaca-mole!", "Nice! That's how you dig it!"],
+  moleStole: ["Hey! That was my favorite carrot!", "Oh no! A carrot-napping!", "That mole's a real carrot-tops thief!", "Drat! They're digging into our snacks!"],
+  moleEnd: ["The moles got all the carrots! Well, they DID dig their way in fair and square.", "No carrots left! Time to dig in to a new round?"],
+  moleWin: ["The moles gave up! You out-dug them! Holy moley!", "Victory! The moles are throwing in the trowel!"],
   // Gerald the pigeon (he heckles)
   gerald: ["Coo. Nice hat, nerd.", "Coo coo. Type faster, I'm bored.", "Coo. I've seen snails type faster.", "Coo. Gonna sit on your hat later.", "Coo. ...Okay, that was pretty good.", "Coo. You're in MY sky now.", "Coo. Your puns are for the birds. And I'M the bird."],
 };

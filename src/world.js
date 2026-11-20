@@ -11,6 +11,7 @@ const VIEWS = {
   side:  { pos: [24, 25, 92],  target: [24, 13, 0] },  // gnome on the left, panel on the right
   type:  { pos: [30, 24, 118], target: [30, 13, 0] },  // gnome on the left, typing card on the right
   decor: { pos: [20, 44, 150], target: [20, 6, -8] },  // the whole garden, left of the panel
+  patch: { pos: [46, 86, 156], target: [46, 0, 4] },     // looking down at the veggie patch / mole holes, card on the right
 };
 
 // Where garden decor can go (center of the item's footprint). Nearest spots first.

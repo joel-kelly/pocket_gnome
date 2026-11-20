@@ -34,6 +34,8 @@ Progress is saved in the browser on that computer. **Grown-ups → Download back
 | ✨ **Meet your new keys** | When new keys unlock, a short three-line lesson: a drill, a mix of "gnome spells", then real words. |
 | 📜 **Practice Scrolls** | Five calm lines of practice. No timer. |
 | 🎈 **Astrognome** | The gnome rides a flowerpot carried by balloons. The balloons slowly lose air; every right key puffs them up and every finished word adds more (clean words in a row add the most). Typos make a balloon wheeze. Fly past rooftops, clouds, Gerald the heckling pigeon, jets, stars and the Moon. Run out of air and it's umbrella time. |
+| 🥕 **Beet the Clock** | Unlocks at stage 6. 60 seconds in the veggie patch: every word plants a veggie. Quick words grow big ones, and 5 clean words in a row grow a golden beet. Fill the patch and the gnome harvests it so you can keep going. |
+| 🐹 **Mole Patrol** | Unlocks at stage 10. Moles pop out of holes holding word signs. The mole that's been up the longest glows, so there's never any choosing: type its word to boop it back down. Moles left waiting too long nibble a carrot. Keep at least one of the 5 carrots for 2 minutes and the moles give up. Gets busier as the round goes on; on Auto pace it eases off after a rough round. |
 | 🍓 **Feed** | Toss snacks and drinks to the gnome. Dandelion Pop gives it hiccups. |
 | 🏪 **Gnome Depot** | Hats, glasses, scarves, things to hold, back items, snacks, garden decor and paint pots (new colors and polka dots, stripes and stars). Click anything to try it first. |
 | 🎩 **Wardrobe** | Change style and paint any time, and put on or take off what you own. |
@@ -76,6 +78,8 @@ src/
   state.js                 save data + stat decay
   audio.js                 all sound effects, made in code (lots of clinks)
   fx.js                    particles: sparkles, leaves, pollen, confetti
+  veggies.js               veggie, mole and hole models for the garden games
+  pace.js                  game pace (auto slows down after a rough round)
   ui.js                    small page helpers: panels, pop-ups, speech bubble
   typing/
     keys.js                stages, which finger presses which key, keyboard layout
@@ -89,5 +93,8 @@ src/
     games.js               Type & Play menu + new-key celebrations
     lesson.js              new-key lessons and Practice Scrolls
     astro.js               Astrognome
+    beet.js                Beet the Clock
+    moles.js               Mole Patrol
+    gardenRound.js         clears the garden for games played on the lawn
     shop.js, wardrobe.js, garden.js, parent.js
 ```

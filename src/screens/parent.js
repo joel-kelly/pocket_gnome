@@ -57,7 +57,7 @@ export function openParent(game) {
     .map(([v, l]) => h('option', { value: v, selected: (s.settings.hints || 'auto') === v }, l)));
   hintSel.onchange = () => { s.settings.hints = hintSel.value; saved(); };
   const paceSel = h('select', { id: 'set-pace' }, ...[
-    ['auto', `Auto: starts normal, slows down after rough rounds (now ${Math.round((s.autoPace?.astro ?? 1) * 100)}%)`],
+    ['auto', `Auto: starts normal, slows down after rough rounds (now Astrognome ${Math.round((s.autoPace?.astro ?? 1) * 100)}%, Mole Patrol ${Math.round((s.autoPace?.moles ?? 1) * 100)}%)`],
     ['relaxed', 'Relaxed (70%)'], ['moderate', 'Normal'], ['aggressive', 'Challenge (125%)']]
     .map(([v, l]) => h('option', { value: v, selected: (s.settings.pace || 'auto') === v }, l)));
   paceSel.onchange = () => { s.settings.pace = paceSel.value; saved(); };
@@ -66,8 +66,8 @@ export function openParent(game) {
   for (const r of s.history.slice(-10).reverse()) {
     hist.append(h('tr', {},
       h('td', {}, new Date(r.t).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })),
-      h('td', {}, { astro: '🎈 Astrognome', lesson: '✨ Lesson', practice: '📜 Practice' }[r.game] || r.game),
-      h('td', {}, r.words), h('td', {}, r.acc + '%'), h('td', {}, r.wpm || '-'), h('td', {}, r.score ? r.score + ' m' : '')));
+      h('td', {}, { astro: '🎈 Astrognome', beet: '🥕 Beet the Clock', moles: '🐹 Mole Patrol', lesson: '✨ Lesson', practice: '📜 Practice' }[r.game] || r.game),
+      h('td', {}, r.words), h('td', {}, r.acc + '%'), h('td', {}, r.wpm || '-'), h('td', {}, !r.score ? '' : r.game === 'astro' ? r.score + ' m' : r.game === 'beet' ? r.score + ' veggies' : r.game === 'moles' ? r.score + ' moles' : r.score)));
   }
 
   const kidIn = h('input', { id: 'set-kid', type: 'text', maxlength: 16, value: s.kidName });
@@ -93,7 +93,7 @@ export function openParent(game) {
     h('label', { for: 'set-stage' }, 'Which keys to practice'), stageSel,
     h('label', { for: 'set-speed' }, '"Fast" target time per key (faster presses level a key up)'), speedSel,
     h('label', { for: 'set-hints' }, 'On-screen keyboard hints'), hintSel,
-    h('label', { for: 'set-pace' }, 'Astrognome pace (how fast the balloons lose air)'), paceSel,
+    h('label', { for: 'set-pace' }, 'Game pace (Astrognome balloons, Mole Patrol moles)'), paceSel,
     h('label', {}, 'Placement check'),
     h('div', { class: 'row left' }, button('Run the placement check again', () => { m.close(); game.go('placement'); }, 'small')),
     h('label', { for: 'set-kid' }, 'Names'),
