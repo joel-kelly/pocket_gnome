@@ -57,6 +57,7 @@ export const sfx = {
   tap() { tone({ f0: 1900, dur: 0.12, vol: 0.06 }); tone({ f0: 2850, dur: 0.08, vol: 0.03 }); },
   clink() { tone({ f0: 2600, dur: 0.35, vol: 0.1 }); tone({ f0: 3920, dur: 0.22, vol: 0.05 }); tone({ type: 'triangle', f0: 1300, dur: 0.1, vol: 0.04 }); },
   clonk() { tone({ type: 'triangle', f0: 520, f1: 300, dur: 0.18, vol: 0.22 }); tone({ f0: 1750, dur: 0.3, vol: 0.09 }); tone({ f0: 2630, dur: 0.2, vol: 0.05, delay: 0.02 }); },
+  bonk() { tone({ type: 'triangle', f0: 420, f1: 140, dur: 0.12, vol: 0.3 }); noise({ dur: 0.05, vol: 0.25, filter: 'bandpass', f0: 1800, q: 1 }); },
   rattle() { for (let i = 0; i < 9; i++) tone({ f0: 2200 + Math.random() * 900, dur: 0.05, vol: 0.04, delay: i * 0.075 }); },
   chime() { tone({ f0: 1568, dur: 0.25, vol: 0.06 }); tone({ f0: 2093, dur: 0.35, vol: 0.06, delay: 0.08 }); },
   // body noises (the polite kind)

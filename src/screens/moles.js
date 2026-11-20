@@ -1,22 +1,29 @@
-// Mole Patrol: moles pop out of holes holding little word signs. Type a mole's
-// word to boop it (gently, on the nose) back down. The mole that's been up the
+// Mole Patrol: an arcade-style mole board with 9 holes. Moles pop up with a
+// word sign in front of their hole. Type the word and the squeaky mallet bonks
+// the mole back down. The mole that's been up the
 // longest is always the one to type, so there's no picking. Moles left waiting
 // too long nibble a carrot. Keep at least one carrot until the moles give up!
 import * as THREE from '../../vendor/three.module.min.js';
 import { h, button } from '../ui.js';
 import { sfx } from '../audio.js';
-import { buildGlazed } from '../voxel.js';
-import { VEGGIES, moleModel, holeModel } from '../veggies.js';
+import { VoxelModel, buildMesh, buildGlazed, hash3 } from '../voxel.js';
+import { addLights, skyTexture } from '../world.js';
+import { FX } from '../fx.js';
+import { VEGGIES, moleModel } from '../veggies.js';
 import { TextPicker } from '../typing/engine.js';
 import { TypePad } from '../typing/pad.js';
 import { afterRound } from './games.js';
-import { enterGarden, leaveGarden } from './gardenRound.js';
 import { pace, tunePace } from '../pace.js';
 
-const HOLES = [[-12, -2], [2, -4], [16, -2], [-12, 14], [2, 12], [16, 14]];
+const GAP_X = 16, GAP_Z = 20;
+const HOLES = [];
+for (const z of [-GAP_Z, 0, GAP_Z]) for (const x of [-GAP_X, 0, GAP_X]) HOLES.push([x, z]);
+const HOLE_R = 4.8;
+const MALLET_L = 13;   // handle length
+const MALLET_P = 9.5;  // pivot height: the head lands on a popped-up mole's head
 const CARROTS = 5;
 const ROUND_SECONDS = 120; // hold out this long and the moles give up
-const HIDE_Y = -7;
+const HIDE_Y = -16; // below the hole floor, out of sight
 
 export class MolesScreen {
   constructor(game) {
@@ -26,29 +33,65 @@ export class MolesScreen {
   get state() { return this.game.state; }
 
   build() {
-    this.group = new THREE.Group();
+    const scene = this.scene = new THREE.Scene();
+    scene.background = skyTexture('#2a3a5a', '#3a5a6a', '#4a6a5a');
+    this.camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 800);
+    this.camera.position.set(0, 150, 118);
+    this.camera.lookAt(0, -4, 6);
+    addLights(scene, this.game.world.renderer, { sunPos: [30, 80, 50], shadowSize: 45 });
+    this.fx = new FX(scene);
+
+    // The board: green felt on top, painted wood around the edge, a hole for each mole.
+    const b = new VoxelModel(null);
+    const W = 27, D0 = -28, D1 = 40;
+    b.box(-W, -12, D0, W, 0, D1, (x, y, z) => {
+      const edge = x <= -W + 2 || x >= W - 3 || z <= D0 + 2 || z >= D1 - 3;
+      if (y === -1) return edge ? (Math.floor((x + z) / 3) % 2 ? '#c8323a' : '#f4d03f') : (hash3(x, 0, z) < 0.3 ? '#4f9a3f' : '#5aa84a');
+      return Math.floor(y / 3) % 2 ? '#8a5a30' : '#a8743f';
+    });
+    for (const [hx, hz] of HOLES) for (let x = hx - 6; x <= hx + 6; x++) for (let z = hz - 6; z <= hz + 6; z++) {
+      const d = Math.hypot(x + 0.5 - hx, z + 0.5 - hz);
+      if (d <= HOLE_R) for (let y = -11; y < 0; y++) b.delete(x, y, z);
+      else if (d <= HOLE_R + 1.2) b.set(x, 0, z, hash3(x, 1, z) < 0.4 ? '#6b4a30' : '#7a5a3a'); // dirt rim
+    }
+    for (const [hx, hz] of HOLES) b.cyl(hx, hz, HOLE_R + 0.5, -12, -11, '#1a120a'); // dark hole bottoms
+    const board = buildMesh(b, { jitter: 0.05 });
+    board.receiveShadow = true;
+    scene.add(board);
+
     this.holes = HOLES.map(([x, z]) => {
-      const hole = buildGlazed(holeModel());
-      hole.position.set(x, 0, z);
-      hole.receiveShadow = true;
       const mole = buildGlazed(moleModel());
       mole.position.set(x, HIDE_Y, z);
-      this.group.add(hole, mole);
+      scene.add(mole);
       return { x, z, mole, state: 'down', y: HIDE_Y, t: 0, word: '', since: 0, patience: 0, wait: 0 };
     });
     this.carrots = [];
     for (let i = 0; i < CARROTS; i++) {
       const c = buildGlazed(VEGGIES.carrot());
-      c.position.set(-10 + i * 6.5, 0, 28);
-      this.group.add(c);
+      c.position.set(-18 + i * 9, 0, 33);
+      c.rotation.z = 0.15;
+      scene.add(c);
       this.carrots.push(c);
     }
+
+    // The squeaky toy mallet. Pivot at the grip; the head points along -x.
+    const mm = new VoxelModel(null);
+    mm.box(-MALLET_L, -1, -1, 0, 1, 1, (x) => (x > -4 ? '#c8323a' : '#e8c97a'));
+    for (let x = -MALLET_L - 5; x <= -MALLET_L + 4; x++) for (let y = -4; y <= 3; y++) for (let z = -4; z <= 3; z++) {
+      const dx = x + 0.5 + MALLET_L + 0.5, dy = y + 0.5;
+      if (Math.abs(dx) <= 4.5 && Math.hypot(dy, z + 0.5) <= 3.1) mm.set(x, y, z, Math.abs(dx) > 3.5 ? '#f4d03f' : '#e8513a');
+    }
+    this.mallet = new THREE.Group();
+    this.mallet.add(buildGlazed(mm));
+    scene.add(this.mallet);
+    this.mal = { x: 0, z: 0, lift: 0.9, strike: null };
   }
 
   enter() {
-    enterGarden(this.game, [2, 0, -20]);
-    if (!this.group) this.build();
-    this.game.world.scene.add(this.group);
+    if (!this.scene) this.build();
+    this.game.world.active = { scene: this.scene, camera: this.camera };
+    this.game.world.resize();
+    this.bubbleOK = false; // the gnome isn't on screen here
     this.reset();
     this.phase = 'ready';
     this.signs = h('div', { class: 'mole-signs' });
@@ -68,8 +111,10 @@ export class MolesScreen {
   exit() {
     this.pad?.destroy();
     clearInterval(this.cdTimer);
-    this.game.world.scene.remove(this.group);
-    leaveGarden(this.game);
+    this.camera.clearViewOffset();
+    this.game.world.active = null;
+    this.game.world.resize();
+    this.fx.clear();
     this.root.innerHTML = '';
   }
 
@@ -82,7 +127,7 @@ export class MolesScreen {
   showReady() {
     this.card.replaceChildren(h('div', { class: 'intro' },
       h('h2', {}, 'Mole Patrol!'),
-      h('p', {}, 'Moles are popping up all over the garden, and they\'re after our carrots! Each mole holds a word. Type it to boop the mole back down. The glowing mole is the one to type.'),
+      h('p', {}, 'Moles are popping up all over the garden, and they\'re after our carrots! Each mole has a word sign. Type the word and the mallet bonks the mole back down. The glowing sign is the one to type.'),
       h('p', {}, `A mole that waits too long nibbles a carrot. Keep a carrot safe for ${ROUND_SECONDS / 60} minutes and the moles give up!`),
       h('p', { class: 'small' }, `Most moles booped: ${this.state.best.moles || 0}`),
       h('div', { class: 'row' }, button('Start the patrol! (Enter)', () => this.countdown(), 'gold big'))));
@@ -158,48 +203,57 @@ export class MolesScreen {
 
   onPadKey({ ok }) {
     if (this.phase !== 'play') return;
-    const { gnome } = this.game;
-    if (ok) { sfx.key(this.pad.i); this.wrongRow = 0; return; }
+    if (ok) { sfx.key(this.pad.i); return; }
     sfx.wrongKey();
     this.streak = 0;
-    this.wrongRow++;
-    if (this.wrongRow >= 3) { this.wrongRow = 0; gnome.act('oops'); this.game.line('typeWrong', 2); }
-    else if (!gnome.busy) gnome.act('totter');
+    // the waiting mole giggles at the typo
+    if (this.target) this.target.giggle = 0.4;
   }
 
+  // Word typed: swing the mallet. The mole goes down when the mallet lands (see bonk).
   boop() {
     const hl = this.target;
     if (!hl || this.phase !== 'play') return;
-    const { fx, gnome } = this.game;
-    hl.state = 'booped';
+    hl.state = 'bonking';
     hl.t = 0;
     this.boops++;
     this.streak = this.pad.stats.wrong === this.lastWrong ? this.streak + 1 : 1;
     this.lastWrong = this.pad.stats.wrong;
     this.bestStreak = Math.max(this.bestStreak, this.streak);
-    const top = new THREE.Vector3(hl.x, hl.y + 8, hl.z);
-    fx.word(top, 'BOOP!');
-    fx.sparkles(top, 5);
-    sfx.word(this.streak);
-    sfx.squeak();
-    if (this.streak > 0 && this.streak % 5 === 0) { sfx.combo(this.streak); gnome.act('spin'); }
-    else if (!gnome.busy) gnome.act('hop');
-    if (Math.random() < 0.25) this.game.line('moleBoop', 2);
+    // Jump the mallet straight over this mole and swing.
+    this.mal.x = hl.x; this.mal.z = hl.z;
+    this.mal.strike = { hl, t: 0, hit: false };
+    sfx.whoosh();
     this.updatePills();
     this.pickTarget(true);
   }
 
+  // The mallet lands on the mole's head.
+  bonk(hl) {
+    const fx = this.fx;
+    hl.state = 'booped';
+    hl.t = 0;
+    sfx.bonk();
+    sfx.squeak();
+    sfx.word(this.streak);
+    const head = new THREE.Vector3(hl.x, 7, hl.z);
+    const stars = ['#ffe14d', '#fff4a8', '#ffffff'];
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      fx.cube(head.clone(), stars[i % 3], { vel: new THREE.Vector3(Math.cos(a) * 16, 6 + Math.random() * 6, Math.sin(a) * 16), gravity: -30, drag: 0.92, life: 0.6, s0: 1.1, s1: 0.2, spin: 8 });
+    }
+    if (this.streak > 0 && this.streak % 5 === 0) { sfx.combo(this.streak); this.fx.confetti(head, 20); }
+  }
+
   // A mole waited too long and nibbles a carrot.
   steal(hl) {
-    const { fx, gnome } = this.game;
+    const fx = this.fx;
     hl.state = 'stealing';
     hl.t = 0;
     const c = this.carrots[this.carrotsLeft - 1];
     if (c) { c.visible = false; fx.puff(c.position.clone().add(new THREE.Vector3(0, 3, 0)), 6, '#f0943e'); }
     this.carrotsLeft--;
     sfx.chomp();
-    gnome.act('slump');
-    this.game.line('moleStole', 2.5);
     this.updatePills();
     if (this.target === hl) this.pickTarget(true);
     if (this.carrotsLeft <= 0) this.finish(false);
@@ -227,25 +281,62 @@ export class MolesScreen {
     // mole motion
     for (const hl of this.holes) {
       hl.t += dt;
-      if (hl.state === 'rising') { hl.y = HIDE_Y + (0 - HIDE_Y) * Math.min(1, hl.t / 0.35); if (hl.t >= 0.35) { hl.state = 'up'; hl.t = 0; } }
+      if (hl.state === 'rising') { hl.y = HIDE_Y + (0 - HIDE_Y) * Math.sin(Math.min(1, hl.t / 0.3) * Math.PI / 2); if (hl.t >= 0.3) { hl.state = 'up'; hl.t = 0; } }
       else if (hl.state === 'up') hl.y = 0.3 * Math.sin(t * 4 + hl.x);
+      else if (hl.state === 'bonking') hl.y = 0;
       else if (hl.state === 'booped' || hl.state === 'stealing') {
-        hl.y = Math.max(HIDE_Y, -hl.t * 30);
+        hl.y = hl.state === 'booped' && hl.t < 0.12 ? 0 : Math.max(HIDE_Y, -(hl.t - (hl.state === 'booped' ? 0.12 : 0)) * 70);
         if (hl.y <= HIDE_Y) { hl.state = 'down'; hl.word = ''; }
       }
-      const squish = hl.state === 'booped' ? 1 - 0.3 * Math.max(0, 1 - hl.t * 4) : 1;
+      hl.giggle = Math.max(0, (hl.giggle || 0) - dt);
+      const squish = hl.state === 'booped' ? 1 - 0.45 * Math.max(0, 1 - hl.t * 3) : 1 + 0.08 * Math.sin(hl.giggle * 40) * (hl.giggle / 0.4);
       hl.mole.position.y = hl.y;
       hl.mole.scale.set(1 / Math.sqrt(squish), squish, 1 / Math.sqrt(squish));
       this.placeSign(hl);
     }
+    this.updateMallet(dt, t);
+    this.fx.update(dt);
+    this.frame();
   }
 
-  // The word sign floats above each mole that's up.
+  // The mallet hovers over the mole to type, and swings down when a word is done.
+  updateMallet(dt, t) {
+    const M = this.mal;
+    const g = this.mallet;
+    const s = M.strike;
+    let lift;
+    if (s) {
+      s.t += dt;
+      if (s.t < 0.09) lift = 0.95 * (1 - s.t / 0.09);                     // swing down
+      else if (s.t < 0.2) { lift = 0; if (!s.hit) { s.hit = true; this.bonk(s.hl); } } // whack!
+      else if (s.t < 0.45) lift = 0.95 * ((s.t - 0.2) / 0.25);              // back up
+      else { M.strike = null; lift = 0.95; }
+    } else {
+      const tgt = this.target;
+      if (tgt) { M.x += (tgt.x - M.x) * Math.min(1, dt * 10); M.z += (tgt.z - M.z) * Math.min(1, dt * 10); }
+      lift = 0.95 + 0.05 * Math.sin(t * 3);
+    }
+    g.visible = this.phase === 'play' || !!s;
+    g.position.set(M.x + MALLET_L + 0.5, MALLET_P, M.z);
+    g.rotation.set(0, 0, -lift);
+  }
+
+  // Keep the board in the space left of the typing card.
+  frame() {
+    const w = innerWidth, h = innerHeight;
+    const card = this.card?.getBoundingClientRect();
+    const right = card && card.width ? card.left : w;
+    const shift = w / 2 - right / 2;
+    const v = this.camera.view;
+    if (!v || v.offsetX !== shift || v.fullWidth !== w || v.fullHeight !== h) this.camera.setViewOffset(w, h, shift, 0, w, h);
+  }
+
+  // Each mole that's up has its word sign in front of its hole.
   placeSign(hl) {
     const show = this.phase === 'play' && (hl.state === 'up' || hl.state === 'rising');
     hl.sign.classList.toggle('hidden', !show);
     if (!show) return;
-    const p = this.game.world.toScreen(new THREE.Vector3(hl.x, hl.y + 9, hl.z));
+    const p = this.game.world.toScreen(new THREE.Vector3(hl.x, 0, hl.z + HOLE_R + 1.5), this.camera);
     hl.sign.style.left = p.x + 'px';
     hl.sign.style.top = p.y + 'px';
     const isTarget = hl === this.target;
@@ -269,7 +360,7 @@ export class MolesScreen {
 
   finish(won) {
     if (this.phase !== 'play') return;
-    const { gnome, S, fx } = this.game;
+    const { S } = this.game;
     const s = this.state;
     this.phase = 'results';
     this.pad.pause();
@@ -284,8 +375,7 @@ export class MolesScreen {
     if (this.pad.stats.right > 0) S.addStat('joy', 10);
     S.save();
     this.bestPill.textContent = `Best: ${s.best.moles || 0}`;
-    if (won) { sfx.fanfare(); fx.confetti(gnome.headTop(), 30); gnome.act('cheer'); }
-    else gnome.act(this.quitted ? 'nod' : 'slump');
+    if (won) { sfx.fanfare(); this.fx.confetti(new THREE.Vector3(0, 10, 0), 50); }
     this.game.line(won ? 'moleWin' : newBest ? 'newBest' : 'moleEnd', 4);
     this.card.replaceChildren(h('div', { class: 'results' },
       h('h2', {}, won ? 'The moles gave up!' : this.quitted ? 'Patrol over!' : 'Out of carrots!'),
