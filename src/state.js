@@ -34,7 +34,7 @@ export function newState() {
     keys: {},               // per-key practice records (see typing/engine.js)
     stage: 1,               // typing stage unlocked so far
     lastLessonStage: 0,     // newest stage whose "meet the new keys" lesson was done
-    best: { astro: 0, beet: 0, moles: 0 },
+    best: { astro: 0, beet: 0, moles: 0, cafe: 0 },
     autoPace: {},           // per-game pace when Game pace is on auto (1 = normal)
     history: [],
     settings: { sound: true, keySeconds: 1.0, maxStage: 'auto', hints: 'auto', pace: 'auto' },

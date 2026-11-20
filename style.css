@@ -289,3 +289,20 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 
 /* Pixelify Sans digits are hard to read (5 looks like 8), so the stage heading uses the blocky font */
 .pc-head b { font: 11px/1.6 var(--display); font-weight: 400; }
+
+/* Crumpet Café: the front customer's order in a speech bubble over their head */
+.cafe-bubbles { position: absolute; inset: 0; pointer-events: none; }
+.cafe-order {
+  position: absolute; transform: translate(-50%, -100%); background: #fffdf6; color: var(--ink, #3a2a1a);
+  border: 3px solid var(--wood-d); border-radius: 14px; padding: 8px 11px 6px; font: 13px/1.5 var(--mono);
+  white-space: nowrap; box-shadow: var(--shadow); z-index: 2;
+}
+.cafe-order::after {
+  content: ''; position: absolute; left: 50%; bottom: -11px; transform: translateX(-50%) rotate(45deg);
+  width: 14px; height: 14px; background: #fffdf6; border-right: 3px solid var(--wood-d); border-bottom: 3px solid var(--wood-d);
+}
+.cafe-order .done { color: #4f9a3f; }
+.cafe-order .pat { height: 5px; background: rgba(0, 0, 0, 0.12); border-radius: 3px; margin-top: 5px; overflow: hidden; }
+.cafe-order .pat i { display: block; height: 100%; background: #9ad87a; }
+.cafe-order .pat i.low { background: #ff8a7a; }
+.cafe-stars { font-size: 34px; color: var(--gold); letter-spacing: 4px; text-shadow: 0 2px 0 var(--wood-d); }
