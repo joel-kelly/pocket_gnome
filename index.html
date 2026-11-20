@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pocket Gnome</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M8 0 L13 9 H3 Z' fill='%23c8323a'/><rect x='5' y='9' width='6' height='3' fill='%23f1c29c'/><path d='M4 11 H12 L8 16 Z' fill='%23f5f2ec'/></svg>" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="ui">
+    <div id="bubble" class="bubble hidden"></div>
+    <div id="hud" class="hidden"></div>
+    <div id="screen"></div>
+    <div id="panel" class="panel hidden"></div>
+    <div id="modal-root"></div>
+    <div id="toasts"></div>
+  </div>
+  <div id="loading">Waking up the gnome...</div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
