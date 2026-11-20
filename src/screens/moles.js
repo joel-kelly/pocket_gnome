@@ -34,12 +34,56 @@ export class MolesScreen {
 
   build() {
     const scene = this.scene = new THREE.Scene();
-    scene.background = skyTexture('#2a3a5a', '#3a5a6a', '#4a6a5a');
+    scene.background = skyTexture('#9fd0ee', '#cfe8d8', '#6aac4b');
     this.camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 800);
     this.camera.position.set(0, 150, 118);
     this.camera.lookAt(0, -4, 6);
-    addLights(scene, this.game.world.renderer, { sunPos: [30, 80, 50], shadowSize: 45 });
+    addLights(scene, this.game.world.renderer, { sunPos: [30, 80, 50], shadowSize: 110 });
     this.fx = new FX(scene);
+
+    // The lawn around the board: a pixel-grass texture plus tufts, flowers and molehills.
+    const c = document.createElement('canvas'); c.width = c.height = 32;
+    const cx = c.getContext('2d');
+    const greens = ['#5aa84a', '#62b04f', '#4f9a3f', '#6abf55', '#579f45'];
+    for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
+      cx.fillStyle = greens[Math.floor(hash3(x, y, 3) * greens.length)];
+      cx.fillRect(x, y, 1, 1);
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.magFilter = THREE.NearestFilter;
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(30, 30);
+    const lawn = new THREE.Mesh(new THREE.PlaneGeometry(900, 900), new THREE.MeshLambertMaterial({ map: tex }));
+    lawn.rotation.x = -Math.PI / 2;
+    lawn.position.y = -12;
+    lawn.receiveShadow = true;
+    scene.add(lawn);
+    const deco = new VoxelModel(null);
+    const petals = ['#f19bc0', '#ffffff', '#e8513a', '#9a7ae0', '#ffb347', '#6fb6ff'];
+    for (let i = 0; i < 260; i++) {
+      const x = Math.round((hash3(i, 1, 9) - 0.5) * 300), z = Math.round((hash3(i, 2, 9) - 0.5) * 240);
+      if (Math.abs(x) < 33 && z > -34 && z < 46) continue; // keep clear of the board
+      const r = hash3(i, 3, 9), y0 = -12;
+      if (r < 0.45) { // grass tuft
+        for (const [dx, h] of [[0, 3], [1, 2], [-1, 2]]) for (let y = 0; y < h; y++) deco.set(x + dx, y0 + y, z, y === h - 1 ? '#7fcf5f' : '#4f9a3f');
+      } else if (r < 0.8) { // flower
+        for (let y = 0; y < 3; y++) deco.set(x, y0 + y, z, '#3f8a35');
+        const col = petals[Math.floor(hash3(i, 4, 9) * petals.length)];
+        deco.set(x, y0 + 3, z, '#f4d03f');
+        for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) deco.set(x + dx, y0 + 3, z + dz, col);
+      } else if (r < 0.9) { // toadstool
+        for (let y = 0; y < 2; y++) deco.set(x, y0 + y, z, '#f3e8d0');
+        deco.cyl(x + 0.5, z + 0.5, 2.2, y0 + 2, y0 + 3, (xx, yy, zz) => (hash3(xx, yy, zz) < 0.25 ? '#ffffff' : '#d23c3a'));
+        deco.set(x, y0 + 3, z, '#d23c3a');
+      } else { // molehill
+        deco.sphere(x + 0.5, y0, z + 0.5, 4.5, (xx, yy, zz) => (hash3(xx, yy, zz) < 0.4 ? '#6b4a30' : '#7a5a3a'), 2.5);
+      }
+    }
+    for (const [x, y, z] of [...deco.each()]) if (y < -12) deco.delete(x, y, z);
+    const decoMesh = buildMesh(deco, { jitter: 0.06 });
+    decoMesh.receiveShadow = true;
+    scene.add(decoMesh);
 
     // The board: green felt on top, painted wood around the edge, a hole for each mole.
     const b = new VoxelModel(null);
