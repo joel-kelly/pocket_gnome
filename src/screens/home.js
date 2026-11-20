@@ -12,6 +12,7 @@ import { openWardrobe } from './wardrobe.js';
 import { openGarden } from './garden.js';
 import { openParent } from './parent.js';
 import { openGames } from './games.js';
+import { BirdBathLife } from '../birdbath.js';
 
 // Spots on the lawn the gnome likes to hop over to.
 const STROLL = [[-14, 6], [12, 8], [-6, -10], [8, -6], [0, 14], [-20, -4], [18, -2]];
@@ -27,6 +28,7 @@ export class HomeScreen {
     this.pokes = [];
     this.raycaster = new THREE.Raycaster();
     game.S.onChange(() => this.refresh());
+    this.bath = new BirdBathLife(game);
     document.getElementById('game').addEventListener('pointerdown', (e) => this.onCanvasClick(e));
   }
   get state() { return this.game.state; }
@@ -55,7 +57,7 @@ export class HomeScreen {
     }
     if (args.say) setTimeout(() => this.game.say(args.say, 6), 500);
   }
-  exit() { this.hud.classList.add('hidden'); }
+  exit() { this.hud.classList.add('hidden'); this.bath.hide(); }
 
   // ---------- HUD ----------
   build() {
@@ -134,6 +136,7 @@ export class HomeScreen {
   update(dt) {
     this.t += dt;
     const { gnome } = this.game;
+    this.bath.update(dt, { calm: !this.busy && !modalOpen() });
     if (this.busy || modalOpen() || gnome.busy) return;
     if (this.t > this.idleAt) {
       this.idleAt = this.t + 7 + Math.random() * 9;
@@ -164,6 +167,8 @@ export class HomeScreen {
     const ndc = new THREE.Vector2((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
     this.raycaster.setFromCamera(ndc, world.camera);
     const hitG = this.raycaster.intersectObject(gnome.object, true)[0];
+    const ger = this.bath.hit(this.raycaster);
+    if (ger != null && (!hitG || ger < hitG.distance)) { this.bath.leave(true); return; }
     const decor = world.decorHit(this.raycaster);
     if (decor && (!hitG || decor.distance < hitG.distance)) this.pokeDecor(decor.spot);
     else if (hitG) this.poke();

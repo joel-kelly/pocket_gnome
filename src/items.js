@@ -246,6 +246,8 @@ function birdbath() {
   m.cyl(12, 12, 2, 2, 9, C.gray);
   m.cyl(12, 12, 7, 9, 11, '#b8b3a8');
   m.cyl(12, 12, 5.6, 10, 11, '#8fd0f0');
+  m.cyl(12, 12, 1.2, 10, 13, '#cfcac0'); // little fountain spout
+  m.set(11, 13, 11, '#8fd0f0');
   return m;
 }
 function toadstool() {
@@ -372,8 +374,8 @@ export const BUILTIN = [
   F('lemonade', 'Lemonade', 7, 'Sweet, sour, and very yellow.', lemonade, { hunger: 5, thirst: 45 }),
   F('dandelionpop', 'Dandelion Pop', 6, 'Extremely fizzy. Hic!', dandelionPop, { hunger: 0, thirst: 40, hiccup: 1 }),
 
-  D('birdbath', 'Bird Bath', 20, 'A splashy spot for birds. (Not you, Gerald.)', birdbath, {
-    poke: 'splash', lines: ['Splish splash!', 'The birds love it. Except Gerald, who just steals the snacks.', 'So refreshing!'],
+  D('birdbath', 'Bird Bath', 20, 'With a bubbling fountain. A splashy spot for birds. (Not you, Gerald.)', birdbath, {
+    poke: 'splash', lines: ['Splish splash!', "It's a little fountain! I'm bubbling with excitement!", 'So refreshing! Just don\'t tell Gerald it\'s here.'],
   }),
   D('toadstool', 'Toadstool Stool', 25, 'A comfy seat. Just the right size.', toadstool, {
     poke: 'sparkle', lines: ['Perfect for sitting! If I could bend.', 'Fun-gi to have around!', "It's a mush-room with a view."],

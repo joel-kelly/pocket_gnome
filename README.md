@@ -39,7 +39,7 @@ Progress is saved in the browser on that computer. **Grown-ups → Download back
 | 🍓 **Feed** | Toss snacks and drinks to the gnome. Dandelion Pop gives it hiccups. |
 | 🏪 **Gnome Depot** | Hats, glasses, scarves, things to hold, back items, snacks, garden decor and paint pots (new colors and polka dots, stripes and stars). Click anything to try it first. |
 | 🎩 **Wardrobe** | Change style and paint any time, and put on or take off what you own. |
-| 🌻 **Garden** | Put decor out in the garden (6 spots) or put it away. Click decor in the garden and it does something. |
+| 🌻 **Garden** | Put decor out in the garden (6 spots) or put it away. Click decor in the garden and it does something. The bird bath has a bubbling fountain, and every minute or so Gerald the pigeon drops in to sip, splash and coo (the gnome is NOT impressed). Click Gerald to shoo him. |
 | 🧹 **Tidy Up** | Leaves pile up on the lawn and on the gnome's hat when it's untidy. The gnome *loves* tidying. |
 | Grown-ups | Press and hold the button. A keyboard heatmap of which keys are solid or shaky, recent rounds, settings and save backups. |
 
@@ -79,6 +79,8 @@ src/
   audio.js                 all sound effects, made in code (lots of clinks)
   fx.js                    particles: sparkles, leaves, pollen, confetti
   veggies.js               veggie, mole and hole models for the garden games
+  gerald.js                Gerald the pigeon's model
+  birdbath.js              the bird bath fountain and Gerald's visits
   pace.js                  game pace (auto slows down after a rough round)
   ui.js                    small page helpers: panels, pop-ups, speech bubble
   typing/

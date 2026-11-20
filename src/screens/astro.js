@@ -12,6 +12,7 @@ import { TextPicker, target } from '../typing/engine.js';
 import { TypePad } from '../typing/pad.js';
 import { afterRound } from './games.js';
 import { pace, tunePace } from '../pace.js';
+import { buildGerald } from '../gerald.js';
 
 const SKY = [[0, '#9fd0ee'], [250, '#7ab8ea'], [500, '#4a78c8'], [700, '#24306e'], [900, '#0e1236'], [99999, '#05060f']];
 const BALLOON_COLORS = ['#e8513a', '#f4d03f', '#4a8ae0', '#6abf4a', '#f19bc0', '#9a7ae0', '#ff9a3a', '#3ac0c0'];
@@ -104,24 +105,10 @@ export class AstroScreen {
     space.ring(-70, -140, 22, 30, 1500, 1501, '#f4d03f');
     scene.add(buildMesh(space));
 
-    // Gerald the pigeon (glazed: he's a fancy pigeon)
-    const ger = new VoxelModel(null);
-    ger.sphere(0, 4, 0, 3.4, '#8a8a9a', 2.8);
-    ger.sphere(0, 8, 3, 2.2, '#7a7a8a');
-    ger.box(-1, 7, 5, 1, 8, 7, '#f2b632');
-    ger.set(-2, 9, 4, '#1c1a1a'); ger.set(1, 9, 4, '#1c1a1a');
-    ger.box(-1, 6, 2, 1, 7, 4, '#4aa88a');
-    ger.box(-1, 2, -5, 1, 4, -2, '#6a6a7a');
-    this.gerWings = [-1, 1].map((s) => {
-      const w = new VoxelModel(null);
-      w.box(0, 0, -3, 5, 1, 3, '#9a9aaa');
-      const mesh = buildGlazed(w, { offset: [0, 0, 0] });
-      mesh.position.set(s > 0 ? 2.5 : -2.5, 5, 0);
-      mesh.scale.x = s;
-      return mesh;
-    });
-    this.gerald = new THREE.Group();
-    this.gerald.add(buildGlazed(ger), ...this.gerWings);
+    // Gerald the pigeon
+    const ger = buildGerald();
+    this.gerald = ger.group;
+    this.gerFlap = ger.flap;
     this.gerald.visible = false;
     scene.add(this.gerald);
 
@@ -384,7 +371,7 @@ export class AstroScreen {
     if (!show) return;
     this.gerald.position.set(-26 + 3 * Math.sin(t * 0.8), this.alt + 50 + 2 * Math.sin(t * 2.3), 6);
     this.gerald.rotation.y = 0.9;
-    this.gerWings.forEach((w, i) => { w.rotation.z = (i ? -1 : 1) * 0.6 * Math.sin(t * 16); });
+    this.gerFlap(0.6 * Math.sin(t * 16));
     if (t > this.geraldAt) {
       this.geraldAt = t + 7;
       sfx.coo();

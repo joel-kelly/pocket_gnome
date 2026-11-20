@@ -128,6 +128,10 @@ export const LINES = {
   moleStole: ["Hey! That was my favorite carrot!", "Oh no! A carrot-napping!", "That mole's a real carrot-tops thief!", "Drat! They're digging into our snacks!"],
   moleEnd: ["The moles got all the carrots! Well, they DID dig their way in fair and square.", "No carrots left! Time to dig in to a new round?"],
   moleWin: ["The moles gave up! You out-dug them! Holy moley!", "Victory! The moles are throwing in the trowel!"],
+  // Gerald visits the bird bath
+  geraldArrive: ["Gerald! That's MY bird bath! ...Well. It IS a bird bath. Fine.", "Oh no, it's Gerald. Act natural. Be a statue.", "Gerald! Coo-ldn't you go splash somewhere else?", "Here comes trouble. Feathered trouble.", "Gerald, that bath is for NICE birds!"],
+  geraldShoo: ["Shoo, Gerald! Shoo!", "And stay out! ...Until next time.", "Bye, Gerald! Don't let the bird bath hit you on the way out!"],
+  geraldLeave: ["Bye, Gerald. ...I'll miss him a little. Don't tell him.", "Good riddance! Well, good bird-dance.", "He's gone. Now I have to wash the bird bath. Again."],
   // Gerald the pigeon (he heckles)
   gerald: ["Coo. Nice hat, nerd.", "Coo coo. Type faster, I'm bored.", "Coo. I've seen snails type faster.", "Coo. Gonna sit on your hat later.", "Coo. ...Okay, that was pretty good.", "Coo. You're in MY sky now.", "Coo. Your puns are for the birds. And I'M the bird."],
 };
