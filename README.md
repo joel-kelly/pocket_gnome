@@ -36,6 +36,7 @@ Progress is saved in the browser on that computer. **Grown-ups → Download back
 | 🎈 **Astrognome** | The gnome rides a flowerpot carried by balloons. The balloons slowly lose air; every right key puffs them up and every finished word adds more (clean words in a row add the most). Typos make a balloon wheeze. Fly past rooftops, clouds, Gerald the heckling pigeon, jets, stars and the Moon. Run out of air and it's umbrella time. |
 | 🥕 **Beet the Clock** | Unlocks at stage 6. 60 seconds in the veggie patch: every word plants a veggie. Quick words grow big ones, and 5 clean words in a row grow a golden beet. Fill the patch and the gnome harvests it so you can keep going. |
 | 🐹 **Mole Patrol** | Unlocks at stage 10. An arcade-style mole board with 9 holes. Moles pop up with a word sign in front of their hole; the one that's been up longest glows, so there's never any choosing. Type its word and the squeaky mallet swings down and bonks it back into its hole. Moles left waiting too long nibble a carrot. Keep at least one of the 5 carrots for 2 minutes and the moles give up. Gets busier as the round goes on; on Auto pace it eases off after a rough round. |
+| ☕ **Crumpet Café** | Unlocks at stage 13. The gnome runs a café under a giant toadstool. Woodland critters line up at the counter and say their order in a speech bubble ("two crumpets please", "a cup of dewdrop tea"). Type it and the gnome serves it on a tray. Quick and clean orders earn tips; a critter who waits too long leaves in a huff. Orders get longer as the day gets busier, and use capitals and commas once those keys unlock. Serve as many as you can in 2 minutes. |
 | 🍓 **Feed** | Toss snacks and drinks to the gnome. Dandelion Pop gives it hiccups. |
 | 🏪 **Gnome Depot** | Hats, glasses, scarves, things to hold, back items, snacks, garden decor and paint pots (new colors and polka dots, stripes and stars). Click anything to try it first. |
 | 🎩 **Wardrobe** | Change style and paint any time, and put on or take off what you own. |
@@ -79,6 +80,7 @@ src/
   audio.js                 all sound effects, made in code (lots of clinks)
   fx.js                    particles: sparkles, leaves, pollen, confetti
   veggies.js               veggie, mole and hole models for the garden games
+  critters.js              Crumpet Café customers and bakes
   gerald.js                Gerald the pigeon's model
   birdbath.js              the bird bath fountain and Gerald's visits
   pace.js                  game pace (auto slows down after a rough round)
@@ -97,6 +99,7 @@ src/
     astro.js               Astrognome
     beet.js                Beet the Clock
     moles.js               Mole Patrol
+    cafe.js                Crumpet Café
     gardenRound.js         clears the garden for games played on the lawn
     shop.js, wardrobe.js, garden.js, parent.js
 ```

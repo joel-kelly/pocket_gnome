@@ -192,6 +192,22 @@ function mushroomSoup() {
   m.set(4, 3, 4, '#8a6a4a'); m.set(6, 3, 6, '#8a6a4a');
   return m;
 }
+function crumpet() {
+  const m = grid('snack');
+  m.cyl(5, 5, 3.8, 0, 2, (x, y, z) => (y === 0 ? '#a8703c' : '#d9a35a'));
+  // the famous holes on top, and a pat of butter
+  m.paint((x, y, z, c) => (y === 1 && r(x, y, z) < 0.3 ? '#b8834a' : null));
+  m.box(4, 2, 4, 6, 3, 6, '#f8e27a');
+  return m;
+}
+function acornMuffin() {
+  const m = grid('snack');
+  m.sphere(5, 3.5, 5, 3.6, (x, y, z) => (r(x, y, z) < 0.15 ? '#5a3a1e' : '#a8703c'), 2.5); // muffin top
+  for (const [x, y, z] of [...m.each()]) if (y < 3) m.delete(x, y, z);
+  m.cone(5, 5, 2.6, 3.2, 0, 3, (x, y, z) => ((x + z) % 2 ? '#e8c97a' : '#d8b860'));       // paper cup
+  m.set(5, 6, 5, '#7a4a24'); m.set(5, 7, 5, '#5a7a2a'); // acorn cap on top
+  return m;
+}
 function acornCookie() {
   const m = grid('snack');
   m.cyl(5, 5, 4.5, 0, 2, '#d9a35a');
@@ -366,6 +382,8 @@ export const BUILTIN = [
 
   F('berrytart', 'Berry Tart', 8, 'Fresh from the bramble patch.', berryTart, { hunger: 35, thirst: 0 }),
   F('acorncookie', 'Acorn Cookie', 5, 'Crunchy. Squirrel-approved.', acornCookie, { hunger: 25, thirst: 0 }),
+  F('crumpet', 'Crumpet', 6, 'Warm, buttery, full of little holes. The Crumpet Café special.', crumpet, { hunger: 30, thirst: 0 }),
+  F('muffin', 'Acorn Muffin', 7, 'Baked with real acorns. Squirrels line up for these.', acornMuffin, { hunger: 35, thirst: 0 }),
   F('radish', 'Crunchy Radish', 3, 'Straight from the veggie patch.', radish, { hunger: 20, thirst: 5 }),
   F('soup', 'Mushroom Soup', 10, 'Warm and cozy. Not made of friends.', mushroomSoup, { hunger: 45, thirst: 10 }),
   F('honeytoast', 'Honey Toast', 9, 'Bees made the honey. Bees are very kind.', honeyToast, { hunger: 40, thirst: 0 }),

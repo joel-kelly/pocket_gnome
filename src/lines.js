@@ -128,6 +128,12 @@ export const LINES = {
   moleStole: ["Hey! That was my favorite carrot!", "Oh no! A carrot-napping!", "That mole's a real carrot-tops thief!", "Drat! They're digging into our snacks!"],
   moleEnd: ["The moles got all the carrots! Well, they DID dig their way in fair and square.", "No carrots left! Time to dig in to a new round?"],
   moleWin: ["The moles gave up! You out-dug them! Holy moley!", "Victory! The moles are throwing in the trowel!"],
+  // Crumpet Café
+  cafeStart: ["The Crumpet Café is open! Let's get this tea party started!", "Aprons on! It's time to make some dough. Get it? Dough?", "Customers coming! Let's make this a brew-tiful day!"],
+  cafeServe: ["Order up!", "One order, served with a smile!", "Tea-rrific!", "That's crumpet-ly perfect!", "Enjoy! It's the best thing since sliced bread!", "Bon appé-tea!"],
+  cafeStreak: ["You're on a roll! A cinnamon roll!", "What a streak! You really take the cake!", "Five in a row! You're one smart cookie!"],
+  cafeGrumpy: ["Oh dear, they got tired of waiting. Never mind, they'll be back for crumpets!", "Grumpy customer! Tea-rrible! Next one will be happier.", "They left in a huff! A huff-and-puff pastry!"],
+  cafeEnd: ["Closing time! What a busy day! I'm bushed. Like a hedgehog. Bush-ed.", "We did it! The café was a hot cross bun-anza!", "Time to put the kettle on and put our feet up! If I could lift my feet."],
   // Gerald visits the bird bath
   geraldArrive: ["Gerald! That's MY bird bath! ...Well. It IS a bird bath. Fine.", "Oh no, it's Gerald. Act natural. Be a statue.", "Gerald! Coo-ldn't you go splash somewhere else?", "Here comes trouble. Feathered trouble.", "Gerald, that bath is for NICE birds!"],
   geraldShoo: ["Shoo, Gerald! Shoo!", "And stay out! ...Until next time.", "Bye, Gerald! Don't let the bird bath hit you on the way out!"],
