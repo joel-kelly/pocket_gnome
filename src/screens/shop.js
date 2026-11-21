@@ -1,7 +1,7 @@
 // Gnome Depot: spend acorns on snacks, hats, paint and garden decor. Try before you buy!
 import { h, button, openPanel, setPanelBody, toast } from '../ui.js';
 import { sfx } from '../audio.js';
-import { allItems, getItem, getModel } from '../items.js';
+import { shopItems, getItem, getModel } from '../items.js';
 import { SLOTS, WEAR_SLOTS } from '../gnomeModel.js';
 import { thumbnail } from '../world.js';
 
@@ -72,7 +72,7 @@ export function openShop(game, startTab = 'snack') {
 
   const render = () => {
     const s = game.state;
-    const items = allItems().filter((it) => it.slot === tab).sort((a, b) => a.price - b.price);
+    const items = shopItems().filter((it) => it.slot === tab).sort((a, b) => a.price - b.price);
     const grid = h('div', { class: 'grid' });
     for (const it of items) {
       const owned = owns(it);

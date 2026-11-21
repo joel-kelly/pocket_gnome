@@ -134,6 +134,15 @@ export const LINES = {
   cafeStreak: ["You're on a roll! A cinnamon roll!", "What a streak! You really take the cake!", "Five in a row! You're one smart cookie!"],
   cafeGrumpy: ["Oh dear, they got tired of waiting. Never mind, they'll be back for crumpets!", "Grumpy customer! Tea-rrible! Next one will be happier.", "They left in a huff! A huff-and-puff pastry!"],
   cafeEnd: ["Closing time! What a busy day! I'm bushed. Like a hedgehog. Bush-ed.", "We did it! The café was a hot cross bun-anza!", "Time to put the kettle on and put our feet up! If I could lift my feet."],
+  // Grand Gnome Prix
+  raceStart: ["Start your engines! I was BORN to drive. Well, I was born in a kiln. Same thing.", "Helmet? Check. Hat? Check. Hat on top of helmet? Gnome-way!", "Let's put the pedal to the petal!", "Ready, set, gnome! I mean go!"],
+  raceTurbo: ["TURBO! Ten clean words in a row!", "Vroom! You're on fire! Not literally. I'm ceramic, I'd crack.", "Look at that clean typing! Smooth as a freshly glazed gnome!"],
+  raceOvertake: ["See you later, slowpoke!", "Coming through! Beep beep!", "Zoom! Eat my pollen!", "Passed 'em! Gnome-body can catch us!", "Out of the way, I've got a crumpet waiting!"],
+  racePassed: ["Hey! Catch them! Type, type, type!", "They're getting away! Faster fingers!", "Don't let them win! I'll never hear the end of it."],
+  raceGerald: ["Gerald! Get off the track!", "Is that GERALD? He's not even registered!", "Gerald, you're a bird. You can't race. ...Wait, can you?"],
+  raceWin: ["We WON! First place! I'm the gnome of the race!", "Champions! I'd do a lap of honor, but my legs don't bend.", "Victory! That was wheel-y good!"],
+  racePrize: ["A TROPHY! For OUR garden! I'm going to polish it every single day!", "We won a prize! Wait till Gerald sees this!", "Look at that shine! It's almost as shiny as me!"],
+  raceEnd: ["What a race! My hat nearly blew off!", "Phew! That was fast! Let's go again!", "Great driving! Well, great typing. I just held the wheel."],
   // Gerald visits the bird bath
   geraldArrive: ["Gerald! That's MY bird bath! ...Well. It IS a bird bath. Fine.", "Oh no, it's Gerald. Act natural. Be a statue.", "Gerald! Coo-ldn't you go splash somewhere else?", "Here comes trouble. Feathered trouble.", "Gerald, that bath is for NICE birds!"],
   geraldShoo: ["Shoo, Gerald! Shoo!", "And stay out! ...Until next time.", "Bye, Gerald! Don't let the bird bath hit you on the way out!"],

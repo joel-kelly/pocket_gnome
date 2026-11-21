@@ -97,6 +97,15 @@ export const sfx = {
   puff() { noise({ dur: 0.18, vol: 0.12, filter: 'bandpass', f0: 600, f1: 1400, q: 1.2 }); },
   wheeze() { tone({ type: 'sawtooth', f0: 900, f1: 500, dur: 0.35, vol: 0.03 }); noise({ dur: 0.35, vol: 0.06, filter: 'bandpass', f0: 2200, f1: 900, q: 4 }); },
   pop() { noise({ dur: 0.08, vol: 0.4, filter: 'highpass', f0: 800 }); tone({ f0: 300, f1: 80, dur: 0.1, vol: 0.2 }); },
+  // racing
+  light() { tone({ type: 'square', f0: 440, dur: 0.18, vol: 0.05 }); },
+  lightsOut() { tone({ type: 'square', f0: 880, dur: 0.4, vol: 0.06 }); tone({ type: 'triangle', f0: 1320, dur: 0.4, vol: 0.05 }); },
+  vroom() { tone({ type: 'sawtooth', f0: 110, f1: 420, dur: 0.45, vol: 0.06 }); noise({ dur: 0.4, vol: 0.06, filter: 'bandpass', f0: 300, f1: 1400, q: 1.5 }); },
+  sputter() { for (let i = 0; i < 3; i++) noise({ dur: 0.05, vol: 0.12, delay: i * 0.08, filter: 'lowpass', f0: 500 }); },
+  cheer() {
+    noise({ dur: 1.4, vol: 0.09, filter: 'bandpass', f0: 1100, f1: 1600, q: 0.7, attack: 0.25 });
+    for (let i = 0; i < 6; i++) tone({ type: 'triangle', f0: 900 + Math.random() * 900, f1: 1400 + Math.random() * 900, dur: 0.12, vol: 0.03, delay: 0.1 + Math.random() * 0.8 });
+  },
   coo() { tone({ f0: 330, f1: 290, dur: 0.22, vol: 0.12 }); tone({ f0: 300, f1: 260, dur: 0.3, vol: 0.12, delay: 0.28 }); },
   // The gnome's talking voice: low, warm, a bit wobbly (grandpa energy).
   babble(text, pitch = 1) {
@@ -108,5 +117,38 @@ export const sfx = {
       }
       d += 0.038;
     }
+  },
+};
+
+// The race car's engine: a low hum whose pitch follows the car's speed.
+let eng = null;
+export const engine = {
+  start() {
+    const c = enabled && ac();
+    if (!c || eng) return;
+    const o = c.createOscillator(), o2 = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
+    o.type = 'sawtooth'; o2.type = 'square';
+    o.frequency.value = 55; o2.frequency.value = 27.5;
+    f.type = 'lowpass'; f.frequency.value = 400;
+    g.gain.value = 0.0001;
+    o.connect(f); o2.connect(f); f.connect(g).connect(master);
+    o.start(); o2.start();
+    eng = { o, o2, f, g };
+  },
+  // k: 0 (idle) .. 1 (flat out)
+  set(k) {
+    if (!eng) return;
+    const t = ctx.currentTime, f0 = 50 + k * 190;
+    eng.o.frequency.setTargetAtTime(f0, t, 0.08);
+    eng.o2.frequency.setTargetAtTime(f0 * 0.502, t, 0.08);
+    eng.f.frequency.setTargetAtTime(280 + k * 1500, t, 0.1);
+    eng.g.gain.setTargetAtTime(0.02 + k * 0.035, t, 0.1);
+  },
+  stop() {
+    if (!eng) return;
+    const t = ctx.currentTime;
+    eng.g.gain.setTargetAtTime(0.0001, t, 0.08);
+    eng.o.stop(t + 0.5); eng.o2.stop(t + 0.5);
+    eng = null;
   },
 };

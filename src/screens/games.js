@@ -9,6 +9,7 @@ import { needKeyboardNote } from './home.js';
 export const GAMES = [
   { id: 'astro', emo: '🎈', name: 'Astrognome', stage: 1, what: 'Type to keep the balloons full. How high can you fly?', best: (s) => `Best: ${s.best.astro || 0} m` },
   { id: 'beet', emo: '🥕', name: 'Beet the Clock', stage: 6, what: 'Every word plants a veggie. How big a harvest can you grow in 60 seconds?', best: (s) => `Biggest harvest: ${s.best.beet || 0}` },
+  { id: 'race', emo: '🏎️', name: 'Grand Gnome Prix', stage: 8, what: 'A one-minute speed test on the race track. How many words a minute can you type? Win trophies for the garden!', best: (s) => `Top speed: ${s.best.race || 0} WPM` },
   { id: 'moles', emo: '🐹', name: 'Mole Patrol', stage: 10, what: 'Moles pop up holding words. Type to boop them before they nibble the carrots!', best: (s) => `Most moles booped: ${s.best.moles || 0}` },
   { id: 'cafe', emo: '☕', name: 'Crumpet Café', stage: 13, what: 'Woodland critters line up for snacks. Type their orders before they get grumpy!', best: (s) => `Most critters served: ${s.best.cafe || 0}` },
   { emo: '✏️', name: 'Gnomework', stage: 15, what: 'Fix the typos in a letter to Grandgnome.' },
