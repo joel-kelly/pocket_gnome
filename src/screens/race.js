@@ -1,8 +1,8 @@
 // Grand Gnome Prix: a one-minute typing speed test on a race track.
 // The gnome drives an open-wheel racer, and the car only moves when you type
 // the right keys, so its speed IS your typing speed. Three critter rivals race
-// alongside at steady speeds set from your best. Woodland critters cheer from
-// the grandstand. Type fast (and carefully) to win trophies for the garden.
+// alongside at speeds picked at random, from slow to a bit past your best.
+// Woodland critters cheer from the grandstand. Type fast (and carefully) to win trophies for the garden.
 import * as THREE from '../../vendor/three.module.min.js';
 import { h, button } from '../ui.js';
 import { sfx, engine } from '../audio.js';
@@ -27,15 +27,25 @@ const LANES = [0, -27, -54, -81]; // you're in the near lane
 const TRACK_NEAR = 18, TRACK_FAR = -96;
 const METERS = 10;              // track units per meter (for the gaps on the leaderboard)
 
-// The rivals. k: their speed compared to your best.
+// The rivals. Each race they get three random speeds, from slow up to a bit
+// faster than your best, so some races you'll smoke them and some you won't.
 const RIVALS = [
-  { id: 'hedgehog', emo: '🦔', name: 'Hedgehog', k: 0.75, body: '#3f9a4a', accent: '#f4d03f', num: 2, wave: 3 },
-  { id: 'squirrel', emo: '🐿️', name: 'Squirrel', k: 1.0, body: '#e8823a', accent: '#fbf7ee', num: 3, wave: 2 },
-  { id: 'bunny', emo: '🐰', name: 'Bunny', k: 1.15, body: '#8a5ad8', accent: '#f19bc0', num: 4, wave: 2 },
+  { id: 'hedgehog', emo: '🦔', name: 'Hedgehog', body: '#3f9a4a', accent: '#f4d03f', num: 2, wave: 3 },
+  { id: 'squirrel', emo: '🐿️', name: 'Squirrel', body: '#e8823a', accent: '#fbf7ee', num: 3, wave: 2 },
+  { id: 'bunny', emo: '🐰', name: 'Bunny', body: '#8a5ad8', accent: '#f19bc0', num: 4, wave: 2 },
 ];
-export function rivalSpeeds(best) {
+export function rivalSpeeds(best, rand = Math.random) {
   const base = best > 0 ? best : 12;
-  return RIVALS.map((r) => Math.max(5, Math.round(base * r.k) + (r.k > 1 ? 1 : 0)));
+  const lo = Math.max(5, Math.round(base * 0.5));
+  const hi = Math.max(lo + 6, Math.round(base * 1.15) + 1);
+  const gap = Math.min(3, Math.floor((hi - lo) / 4)); // keep them from bunching up on one speed
+  let picks = [];
+  for (let tries = 0; tries < 50; tries++) {
+    picks = RIVALS.map(() => lo + Math.floor(rand() * (hi - lo + 1)));
+    const sorted = [...picks].sort((a, b) => a - b);
+    if (sorted[1] - sorted[0] >= gap && sorted[2] - sorted[1] >= gap) break;
+  }
+  return picks;
 }
 const ordinal = (n) => n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th');
 const MEDAL = ['🥇', '🥈', '🥉', '🏁'];
@@ -593,6 +603,14 @@ export class RaceScreen {
     while (this.keyTimes.length && this.keyTimes[0] < since) this.keyTimes.shift();
     return this.keyTimes.length / 5 / (win / 60);
   }
+  // Track units a second you've been typing lately, over a few seconds so word gaps smooth out.
+  pace() {
+    const win = Math.min(3, Math.max(0.75, this.elapsed));
+    const since = this.elapsed - win;
+    let n = 0;
+    for (let i = this.keyTimes.length - 1; i >= 0 && this.keyTimes[i] >= since; i--) n++;
+    return (n * PER_CHAR) / win;
+  }
   rivalDist(r, t) {
     // Steady on average, with a little surge and fade so it looks like racing.
     const v = r.wpm * PER_WPM;
@@ -615,9 +633,17 @@ export class RaceScreen {
     // The car chases where your typing has got it to.
     const target = this.chars * PER_CHAR + (this.phase === 'results' ? this.coast || 0 : 0);
     if (this.phase === 'results') this.coast = (this.coast || 0) + (this.coastV = (this.coastV ?? this.speed) * Math.pow(0.3, dt)) * dt;
-    const prev = this.dist;
-    this.dist += (target - this.dist) * (1 - Math.exp(-dt * 3.5));
-    this.speed = dt > 0 ? (this.dist - prev) / dt : 0;
+    if (this.phase === 'play') {
+      // Cruise at your rolling pace (so the car doesn't brake between words), with a
+      // gentle pull toward where your typing has really got you so it never drifts off.
+      const want = Math.max(0, this.pace() + (target - this.dist) * 0.5);
+      this.speed = Math.max(0, this.speed + (want - this.speed) * (1 - Math.exp(-dt * 3)));
+      this.dist += this.speed * dt;
+    } else {
+      const prev = this.dist;
+      this.dist += (target - this.dist) * (1 - Math.exp(-dt * 3.5));
+      this.speed = dt > 0 ? (this.dist - prev) / dt : 0;
+    }
     const k = Math.min(1, this.speed / (60 * PER_WPM));
     if (this.phase === 'play') engine.set(0.06 + k * 0.94);
     else if (this.phase === 'results') { if (k < 0.02) engine.stop(); else engine.set(k * 0.6); }
