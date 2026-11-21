@@ -12,6 +12,7 @@ import { DepotScreen } from './screens/depot.js';
 import { BeetScreen } from './screens/beet.js';
 import { MolesScreen } from './screens/moles.js';
 import { CafeScreen } from './screens/cafe.js';
+import { RaceScreen } from './screens/race.js';
 
 const state = S.load();
 setSoundEnabled(state.settings.sound);
@@ -116,6 +117,7 @@ game.screens.depot = new DepotScreen(game);
 game.screens.beet = new BeetScreen(game);
 game.screens.moles = new MolesScreen(game);
 game.screens.cafe = new CafeScreen(game);
+game.screens.race = new RaceScreen(game);
 
 game.applyOutfit();
 game.applyMood();

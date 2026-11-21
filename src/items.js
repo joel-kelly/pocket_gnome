@@ -339,6 +339,101 @@ function birdhouse() {
   return m;
 }
 
+// ---------------- RACE PRIZES (won at the Grand Gnome Prix, never sold) ----------------
+// Tiny 3x5 pixel digits for podium numbers.
+const DIGITS = { 1: ['010', '110', '010', '010', '111'], 2: ['111', '001', '111', '100', '111'], 3: ['111', '001', '011', '001', '111'] };
+function digit(m, n, x0, y0, z, color) {
+  DIGITS[n].forEach((row, i) => [...row].forEach((b, j) => { if (b === '1') m.set(x0 + j, y0 + 4 - i, z, color); }));
+}
+function checkerFlag() {
+  const m = grid('decor');
+  m.cyl(8, 12, 2.6, 0, 1, C.grayD);
+  for (let y = 1; y < 22; y++) m.set(7, y, 11, C.white), m.set(8, y, 11, '#d8d4cc');
+  m.sphere(8, 22.5, 11.5, 1.4, C.gold);
+  // the flag, with a little ripple in it
+  for (let x = 9; x < 21; x++) for (let y = 12; y < 21; y++) {
+    const z = 11 + Math.round(Math.sin((x - 9) * 0.7) * 0.8);
+    m.set(x, y + (x > 16 ? -1 : 0), z, (Math.floor((x - 9) / 2) + Math.floor(y / 2)) % 2 ? C.black : C.white);
+  }
+  return m;
+}
+// A trophy cup on a little wooden plinth with a nameplate.
+function cup(metal, metalD, { tall = 0, gem = null } = {}) {
+  return () => {
+    const m = grid('decor');
+    m.box(6, 0, 6, 18, 4, 18, (x, y) => (y === 3 ? '#6a4220' : '#8a5a30'));
+    m.box(9, 1, 18, 15, 3, 19, metal);                                  // nameplate
+    m.cone(12, 12, 3.6, 2, 4, 6, metalD);                                // foot
+    m.cyl(12, 12, 1.2, 6, 9 + tall, metal);                              // stem
+    m.cone(12, 12, 2.4, 6.4, 9 + tall, 17 + tall * 2, (x, y, z) => (y === 12 + tall ? metalD : metal)); // bowl
+    for (const [x, y, z] of [...m.each()]) if (y >= 15 + tall * 2 && Math.hypot(x + 0.5 - 12, z + 0.5 - 12) < 4.6) m.delete(x, y, z);
+    m.cyl(12, 12, 4.6, 14 + tall * 2, 15 + tall * 2, metalD);            // shine inside
+    const y0 = 9 + tall, y1 = 17 + tall * 2;
+    const bowlR = (y) => 2.4 + ((6.4 - 2.4) * (y - y0)) / (y1 - y0 - 1);
+    for (const sx of [-1, 1]) {                                          // handles, joined to the bowl
+      const hx = sx < 0 ? 4 : 19, yb = 11 + tall, yt = 15 + tall;
+      for (let y = yb; y <= yt; y++) m.set(hx, y, 12, metal);
+      for (const y of [yb, yt]) {
+        const edge = Math.floor(12 + sx * (bowlR(y) - 0.5));
+        for (let x = Math.min(edge, hx); x <= Math.max(edge, hx); x++) m.set(x, y, 12, metal);
+      }
+    }
+    if (gem) { m.set(11, 12 + tall, 18, gem); m.set(12, 12 + tall, 18, gem); m.set(11, 13 + tall, 18, gem); m.set(12, 13 + tall, 18, gem); }
+    return m;
+  };
+}
+function podium() {
+  const m = grid('decor');
+  const block = (x0, x1, top, color, n) => {
+    m.box(x0, 0, 7, x1, top, 17, (x, y) => (y === top - 1 ? color : C.white));
+    digit(m, n, Math.floor((x0 + x1) / 2) - 1, Math.max(1, top - 7), 17, C.blue);
+  };
+  block(8, 16, 10, C.gold, 1);
+  block(1, 8, 7, '#c9ced8', 2);
+  block(16, 23, 5, '#c98a4a', 3);
+  m.cone(12, 12, 1.8, 0.6, 10, 15, C.gold);                            // a gold star-ish spire for the winner
+  m.box(10, 13, 11, 15, 14, 13, C.gold);
+  return m;
+}
+function miniRacer() {
+  const m = grid('decor');
+  const body = C.red, CARBON = C.black;
+  m.box(3, 1, 9, 21, 2, 15, CARBON);                                   // floor
+  for (let x = 12; x < 22; x++) { const t = (x - 12) / 10; m.box(x, 2, 11, x + 1, 5 - Math.round(t * 2), 13, body); } // nose
+  m.box(5, 2, 9, 13, 5, 15, body);                                     // body
+  m.box(7, 5, 10, 9, 8, 14, C.cream);                                  // a tiny gnome driver...
+  m.box(7, 8, 10, 9, 11, 14, C.red); m.box(7, 11, 11, 8, 13, 13, C.red); // ...in a red pointy hat
+  m.box(3, 5, 11, 6, 7, 13, body);                                     // engine cover
+  m.box(1, 7, 8, 4, 8, 16, body); m.box(2, 2, 11, 3, 7, 13, CARBON);   // rear wing
+  m.box(20, 1, 8, 23, 2, 16, body);                                    // front wing
+  for (const [x, r] of [[5, 2.6], [18, 2.2]]) for (const z of [7, 15]) {
+    for (let dx = -3; dx <= 3; dx++) for (let dy = -3; dy <= 3; dy++) {
+      const d = Math.hypot(dx, dy);
+      if (d <= r) for (let dz = 0; dz < 2; dz++) m.set(x + dx, Math.round(r) + dy, z + dz, d < 1.2 ? C.gold : CARBON);
+    }
+  }
+  m.cyl(12, 12, 3, 0, 1, C.grayD);                                     // display stand
+  return m;
+}
+function lightningTrophy() {
+  const m = grid('decor');
+  m.box(6, 0, 7, 18, 4, 17, (x, y) => (y === 3 ? '#2b3270' : '#3a4490'));
+  m.box(9, 1, 17, 15, 3, 18, C.gold);
+  // a big golden lightning bolt: down-left, a kink back right, down-left again
+  const seg = (x0, y0, x1, y1) => {
+    const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+    for (let i = 0; i <= n; i++) {
+      const x = Math.round(x0 + ((x1 - x0) * i) / n), y = Math.round(y0 + ((y1 - y0) * i) / n);
+      m.box(x - 1, y, 11, x + 2, y + 1, 13, (i + y) % 4 ? C.gold : C.yellow);
+    }
+  };
+  seg(15, 22, 10, 13);
+  seg(10, 13, 15, 13);
+  seg(15, 13, 10, 4);
+  m.sphere(16, 23.5, 12, 1.2, '#fff6c8');
+  return m;
+}
+
 // ---------------- PAINT POTS (unlock new paint colors and patterns) ----------------
 function paintPot(color, pattern) {
   return () => {
@@ -355,6 +450,8 @@ function paintPot(color, pattern) {
 const W = (id, name, slot, price, desc, build) => ({ id, name, slot, kind: 'wear', price, desc, build });
 const F = (id, name, price, desc, build, opts) => ({ id, name, slot: 'snack', kind: opts.thirst > opts.hunger ? 'drink' : 'food', price, desc, build, hiccup: 0, ...opts });
 const D = (id, name, price, desc, build, opts = {}) => ({ id, name, slot: 'decor', kind: 'decor', price, desc, build, ...opts });
+// Prizes are decor with a WPM to beat instead of a price.
+const R = (id, name, wpm, desc, build, opts = {}) => ({ id, name, slot: 'decor', kind: 'decor', price: 0, prize: { wpm }, desc, build, ...opts });
 const P = (id, name, price, desc, opts) => ({ id, name, slot: 'paint', kind: 'paint', price, desc, build: paintPot(opts.color || '#e2b93b', opts.pattern), ...opts });
 
 export const BUILTIN = [
@@ -420,6 +517,29 @@ export const BUILTIN = [
     anim: 'bob', poke: 'notes', lines: ['Tweet tweet!', 'Gerald wanted to move in. The answer was no.', 'Cozy little place!'],
   }),
 
+  // Race prizes: won at the Grand Gnome Prix by typing fast (and carefully). Can't be bought.
+  R('checkerflag', 'Checkered Flag', 10, 'You typed 10 words a minute at the Grand Gnome Prix!', checkerFlag, {
+    anim: 'sway', poke: 'sparkle', lines: ['The checkered flag! That means we WON. Or the race is over. Same thing.', 'Flap flap! It flutters like a racing heart!', 'Ten words a minute! Gnome-body could catch us!'],
+  }),
+  R('bronzecup', 'Bronze Cup', 15, 'For typing 15 words a minute at the Grand Gnome Prix.', cup('#c98a4a', '#a06a32'), {
+    poke: 'sparkle', lines: ['Bronze! That\'s bronze-tastic!', 'I polish it every morning. I\'m a very tidy champion.', 'Fifteen words a minute! Vroom!'],
+  }),
+  R('silvercup', 'Silver Cup', 20, 'For typing 20 words a minute at the Grand Gnome Prix.', cup('#c9ced8', '#9aa0aa', { tall: 1 }), {
+    poke: 'sparkle', lines: ['Silver! Shiny as my glaze!', 'Twenty words a minute! Tell all your friends!', 'Every cloud has a silver lining. Every garden has a silver CUP.'],
+  }),
+  R('goldcup', 'Golden Cup', 30, 'For typing 30 words a minute at the Grand Gnome Prix. A real champion!', cup('#e2b93b', '#b8902a', { tall: 2, gem: '#d23c3a' }), {
+    poke: 'sparkle', lines: ['GOLD! We are the champions, my friend!', 'Thirty words a minute! That\'s faster than a squirrel with a deadline!', 'I can see my reflection in it. Handsome devil.'],
+  }),
+  R('podium', "Winner's Podium", 40, 'For typing 40 words a minute. Number one, every time!', podium, {
+    poke: 'sparkle', lines: ['First place! I\'d stand on top, but I\'m already very tall. For a gnome.', 'Forty words a minute! The crowd goes wild!', 'Second place is just the first loser. Kidding! Everybody gets a crumpet.'],
+  }),
+  R('miniracer', 'Little Racer', 50, 'A model of the champion\'s car, for typing 50 words a minute!', miniRacer, {
+    anim: 'bob', poke: 'sparkle', lines: ['Vroom vroom! It\'s a little me, in a little car!', 'Fifty words a minute! You\'re a typing rocket!', 'It goes zero to sixty in... well, it doesn\'t go. It\'s a statue. Like me!'],
+  }),
+  R('lightning', 'Lightning Fingers', 60, 'The fastest prize of all: 60 words a minute! Your fingers are lightning!', lightningTrophy, {
+    anim: 'bob', poke: 'sparkle', lines: ['LIGHTNING FINGERS! Sixty words a minute! Shocking!', 'This trophy is electrifying!', 'Bolt from the blue! Nobody types faster than us!'],
+  }),
+
   P('goldpaint', 'Golden Glaze', 60, 'Shiny gold paint for any part of your gnome.', { color: '#e2b93b' }),
   P('midnightpaint', 'Midnight Blue', 30, 'Deep, dark, dreamy blue.', { color: '#2b3270' }),
   P('mintpaint', 'Mint Green', 30, 'Fresh as a garden morning.', { color: '#8fd8b8' }),
@@ -435,6 +555,10 @@ const registry = new Map(BUILTIN.map((it) => [it.id, it]));
 const modelCache = new Map();
 export function allItems() { return [...registry.values()]; }
 export function getItem(id) { return registry.get(id); }
+// Things you can buy at Gnome Depot (prizes have to be won).
+export function shopItems() { return allItems().filter((it) => !it.prize); }
+// Race prizes, slowest first.
+export const PRIZES = BUILTIN.filter((it) => it.prize).sort((a, b) => a.prize.wpm - b.prize.wpm);
 
 // Wearables: drop any block that would sit inside the gnome's body.
 function fit(model, slot) {

@@ -306,3 +306,42 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .cafe-order .pat i { display: block; height: 100%; background: #9ad87a; }
 .cafe-order .pat i.low { background: #ff8a7a; }
 .cafe-stars { font-size: 34px; color: var(--gold); letter-spacing: 4px; text-shadow: 0 2px 0 var(--wood-d); }
+
+/* Grand Gnome Prix: a wide track up top, the typing card along the bottom */
+.type-screen.race { justify-content: flex-end; align-items: center; padding: 70px 14px 12px; }
+.type-card.race { width: min(860px, 96vw); padding: 10px 14px 12px; gap: 6px; max-height: calc(100vh - 84px); overflow-y: auto; }
+.type-card.race .kb { --key: 31px; }
+.type-card.race .tp-line { font-size: clamp(15px, 1.7vw, 22px); }
+.type-card.race .results, .type-card.race .intro { gap: 8px; padding: 2px; }
+.pill.pop { animation: bump 0.4s; }
+.race-board { position: absolute; top: 66px; left: 14px; display: grid; gap: 4px; background: rgba(251, 246, 234, 0.92); border: 2px solid var(--line); border-radius: 14px; padding: 8px 10px; box-shadow: var(--shadow); min-width: 210px; pointer-events: none; }
+.rb-row { display: grid; grid-template-columns: 18px 26px 1fr auto; gap: 6px; align-items: center; font-weight: 700; font-size: 16px; }
+.rb-row b { font: 10px var(--display); }
+.rb-row.me { color: var(--hat); }
+.rb-gap { font: 9px var(--display); color: var(--muted); }
+.speedo { --f: 0; position: absolute; top: 66px; right: 14px; width: 128px; height: 128px; border-radius: 50%; background: #2a2628; border: 4px solid #fbf6ea; box-shadow: var(--shadow); pointer-events: none; }
+.sp-dial { position: absolute; inset: 8px; border-radius: 50%;
+  background: conic-gradient(from 225deg, #8bc97c 0deg, #f2b632 calc(var(--f) * 180deg), #e8402e calc(var(--f) * 270deg), rgba(255,255,255,0.12) calc(var(--f) * 270deg), rgba(255,255,255,0.12) 270deg, transparent 270deg);
+  -webkit-mask: radial-gradient(circle, transparent 64%, #000 65%); mask: radial-gradient(circle, transparent 64%, #000 65%); }
+.sp-needle { position: absolute; left: 50%; top: 50%; width: 4px; height: 44px; margin-left: -2px; background: #fbf6ea; border-radius: 2px; transform-origin: 50% 0; transform: rotate(calc(45deg + var(--f) * 270deg)); transition: transform 0.15s; }
+.sp-num { position: absolute; left: 0; right: 0; top: 66px; text-align: center; font: 24px var(--display); color: #fff4dc; text-shadow: 0 2px 0 #2a2628; z-index: 1; }
+.sp-unit { position: absolute; left: 0; right: 0; bottom: 12px; text-align: center; font: 9px var(--display); color: #b8b0a0; }
+.speedo.fast .sp-num { color: #ffd84a; }
+.race-tags { position: absolute; inset: 0; pointer-events: none; }
+.race-tag { position: absolute; transform: translate(-50%, -100%); background: #fffdf6; border: 2px solid var(--line); border-radius: 999px; padding: 4px 10px; font-weight: 800; font-size: 15px; white-space: nowrap; box-shadow: var(--shadow); }
+.start-lights { display: flex; justify-content: center; gap: 14px; padding: 14px 18px; background: #2a2628; border-radius: 16px; justify-self: center; }
+.start-lights i { width: 44px; height: 44px; border-radius: 50%; background: #4a2a2a; box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.35); }
+.start-lights i.on { background: #ff3a2a; box-shadow: 0 0 18px #ff3a2a, inset 0 -4px 0 rgba(0, 0, 0, 0.2); }
+.start-lights i.go { background: #5ad84a; box-shadow: 0 0 18px #5ad84a; }
+.race-wpm { font: 18px var(--display); color: var(--muted); }
+.race-wpm b { font: 46px var(--display); color: var(--hat); }
+.prize-shelf { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; background: linear-gradient(#c99a62, #a8743f); border: 3px solid var(--wood-d); border-radius: 14px; padding: 6px 8px; }
+.prize { display: grid; justify-items: center; width: 84px; font: 8px/1.5 var(--display); color: #fff4dc; text-align: center; }
+.prize img { width: 60px; height: 60px; }
+.prize.locked img { filter: grayscale(1) brightness(0.45); opacity: 0.7; }
+.prize.locked span { color: #f1e0c0; opacity: 0.8; }
+.prize.fresh img { animation: bump 0.6s 3; filter: drop-shadow(0 0 8px #ffe14d); }
+.prize-won { display: grid; gap: 2px; background: #ffe9a8; border: 2px solid var(--gold); border-radius: 14px; padding: 8px 16px; }
+.prize-won b { font: 12px/1.6 var(--display); }
+.brag { display: flex; gap: 10px; align-items: center; background: #fff; border: 2px dashed var(--line); border-radius: 14px; padding: 8px 12px; font-weight: 700; text-align: left; }
+@media (max-width: 1000px) { .type-card.race .kb { --key: 28px; } .speedo { width: 104px; height: 104px; } .sp-needle { height: 32px; } .sp-num { font-size: 19px; top: 54px; } .sp-unit { bottom: 9px; } }

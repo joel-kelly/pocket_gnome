@@ -66,8 +66,8 @@ export function openParent(game) {
   for (const r of s.history.slice(-10).reverse()) {
     hist.append(h('tr', {},
       h('td', {}, new Date(r.t).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })),
-      h('td', {}, { astro: '🎈 Astrognome', beet: '🥕 Beet the Clock', moles: '🐹 Mole Patrol', cafe: '☕ Crumpet Café', lesson: '✨ Lesson', practice: '📜 Practice' }[r.game] || r.game),
-      h('td', {}, r.words), h('td', {}, r.acc + '%'), h('td', {}, r.wpm || '-'), h('td', {}, !r.score ? '' : r.game === 'astro' ? r.score + ' m' : r.game === 'beet' ? r.score + ' veggies' : r.game === 'moles' ? r.score + ' moles' : r.game === 'cafe' ? r.score + ' critters' : r.score)));
+      h('td', {}, { astro: '🎈 Astrognome', beet: '🥕 Beet the Clock', moles: '🐹 Mole Patrol', cafe: '☕ Crumpet Café', race: '🏎️ Grand Gnome Prix', lesson: '✨ Lesson', practice: '📜 Practice' }[r.game] || r.game),
+      h('td', {}, r.words), h('td', {}, r.acc + '%'), h('td', {}, r.wpm || '-'), h('td', {}, !r.score ? '' : r.game === 'astro' ? r.score + ' m' : r.game === 'beet' ? r.score + ' veggies' : r.game === 'moles' ? r.score + ' moles' : r.game === 'cafe' ? r.score + ' critters' : r.game === 'race' ? r.score + ' WPM' : r.score)));
   }
 
   const kidIn = h('input', { id: 'set-kid', type: 'text', maxlength: 16, value: s.kidName });

@@ -35,6 +35,8 @@ Progress is saved in the browser on that computer. **Grown-ups → Download back
 | 📜 **Practice Scrolls** | Five calm lines of practice. No timer. |
 | 🎈 **Astrognome** | The gnome rides a flowerpot carried by balloons. The balloons slowly lose air; every right key puffs them up and every finished word adds more (clean words in a row add the most). Typos make a balloon wheeze. Fly past rooftops, clouds, Gerald the heckling pigeon, jets, stars and the Moon. Run out of air and it's umbrella time. |
 | 🥕 **Beet the Clock** | Unlocks at stage 6. 60 seconds in the veggie patch: every word plants a veggie. Quick words grow big ones, and 5 clean words in a row grow a golden beet. Fill the patch and the gnome harvests it so you can keep going. |
+| 🏎️ **Grand Gnome Prix** | Unlocks at stage 8. A one-minute typing speed test on a race track, for bragging rights. The gnome drives an open-wheel racer painted like its hat, and the car only moves when you type the right keys, so its speed *is* your typing speed. Three critter rivals (hedgehog, squirrel, bunny) race at steady speeds set from your best, so there's always someone to chase. A grandstand full of woodland critters cheers when you overtake. F1 start lights, a live WPM speedometer, lap gantries, and Gerald gatecrashing. At the end: your WPM, accuracy, finishing place, and a brag line you can copy and send to friends. |
+| 🏆 **Race trophies** | Garden decor you can't buy, only win at the Grand Gnome Prix: Checkered Flag (10 WPM), Bronze Cup (15), Silver Cup (20), Golden Cup (30), Winner's Podium (40), Little Racer (50) and Lightning Fingers (60). A race needs at least 85% accuracy to win trophies. New trophies go straight into the garden if there's a free spot. |
 | 🐹 **Mole Patrol** | Unlocks at stage 10. An arcade-style mole board with 9 holes. Moles pop up with a word sign in front of their hole; the one that's been up longest glows, so there's never any choosing. Type its word and the squeaky mallet swings down and bonks it back into its hole. Moles left waiting too long nibble a carrot. Keep at least one of the 5 carrots for 2 minutes and the moles give up. Gets busier as the round goes on; on Auto pace it eases off after a rough round. |
 | ☕ **Crumpet Café** | Unlocks at stage 13. The gnome runs a café under a giant toadstool. Woodland critters line up at the counter and say their order in a speech bubble ("two crumpets please", "a cup of dewdrop tea"). Type it and the gnome serves it on a tray. Quick and clean orders earn tips; a critter who waits too long leaves in a huff. Orders get longer as the day gets busier, and use capitals and commas once those keys unlock. Serve as many as you can in 2 minutes. |
 | 🍓 **Feed** | Toss snacks and drinks to the gnome. Dandelion Pop gives it hiccups. |
@@ -74,7 +76,7 @@ src/
   gnomeModel.js            the gnome's body, hairstyles, paints and item slots
   gnome.js                 the gnome's moves (hop, spin, sneeze, tip over...) and blinking
   world.js                 renderer, the garden, cameras, item thumbnails
-  items.js                 hats, outfits, snacks, garden decor and paint pots
+  items.js                 hats, outfits, snacks, garden decor, paint pots and race trophies
   lines.js                 everything the gnome says  ← add puns here!
   state.js                 save data + stat decay
   audio.js                 all sound effects, made in code (lots of clinks)
@@ -100,6 +102,7 @@ src/
     beet.js                Beet the Clock
     moles.js               Mole Patrol
     cafe.js                Crumpet Café
+    race.js                Grand Gnome Prix (the cars, the track and the trophies shelf)
     gardenRound.js         clears the garden for games played on the lawn
     shop.js, wardrobe.js, garden.js, parent.js
 ```
