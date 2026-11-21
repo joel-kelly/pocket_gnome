@@ -48,6 +48,7 @@ export class PlacementScreen {
       h('p', {}, 'Type a few short lines. Take your time: getting the keys right matters more than going fast. If a line feels tricky, that\'s where we\'ll start practicing.'),
       h('p', { class: 'small' }, 'Put your pointer fingers on the little bumps on F and J. That\'s Gnome Row!'),
       h('div', { class: 'row' },
+        button('Not now', () => this.game.go('home'), 'small'),
         button('Start from the very beginning', () => this.finish(1), 'small'),
         button("Let's go! (Enter)", () => this.startBlock(), 'gold big'))));
     this.game.say("Don't worry, it's not a test! It's a gnome-work check. No pressure. Well, a little gnome-pressure.", 6);
@@ -121,11 +122,14 @@ export class PlacementScreen {
     const s = this.state;
     this.phase = 'done';
     this.pad?.pause();
-    s.stage = Math.max(1, stage);
+    // Never move a kid backwards: they may have played their way past this already.
+    const before = s.stage || 1;
+    s.stage = Math.max(before, stage, 1);
+    // Skipped stages don't need their "meet the new keys" lesson.
+    if (s.stage > before) s.lastLessonStage = s.stage - 1;
+    const firstTime = !s.placed;
     s.placed = true;
-    // The first stage's lesson only matters if we start there.
-    s.lastLessonStage = s.stage - 1;
-    S.addAcorns(10);
+    if (firstTime) S.addAcorns(10);
     S.save();
     sfx.fanfare();
     gnome.act('cheer');
@@ -137,7 +141,7 @@ export class PlacementScreen {
       h('p', {}, s.stage > 1
         ? `We'll start practicing ${keyList(st.keys)}. Keys you already know will keep showing up too.`
         : 'We\'ll start with F and J: the keys with the little bumps. Every typist starts there!'),
-      h('p', { class: 'small' }, 'You earned 🌰 10 acorns for trying. Spend them at Gnome Depot!'),
+      firstTime ? h('p', { class: 'small' }, 'You earned 🌰 10 acorns for trying. Spend them at Gnome Depot!') : null,
       h('div', { class: 'row' }, button('Back to the garden (Enter)', () => this.done(), 'gold big'))));
     this.game.say(s.stage > GNOME_ROW_STAGE ? 'You can already type Gnome Row! I gnome you could do it!' : "Every great typist starts with F and J. It's the root of it all! Like a carrot!", 6);
   }

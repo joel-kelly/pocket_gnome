@@ -73,7 +73,11 @@ export function openGames(game) {
     h('span', { class: 'gtxt' }, h('b', {}, 'Practice Scrolls'), h('span', {}, 'Five calm lines of practice. No rush, no balloons.')));
   const playable = GAMES.filter((gm) => gm.id && stage >= gm.stage);
   const later = GAMES.filter((gm) => !(gm.id && stage >= gm.stage));
-  const games = h('div', { class: 'game-list' }, ...playable.map(card), practice, ...later.map(card));
+  // The placement check sits on top until it's done (or skipped). Until then, practice starts at F and J.
+  const check = s.placed ? null : h('button', { class: 'game-card check', onclick: () => { sfx.click(); closePanel(); game.go('placement'); } },
+    h('span', { class: 'gemo' }, '🎯'),
+    h('span', { class: 'gtxt' }, h('b', {}, 'Already know some keys?'), h('span', {}, 'Learned typing at school? Show me what your fingers know and skip ahead!')));
+  const games = h('div', { class: 'game-list' }, check, ...playable.map(card), practice, ...later.map(card));
 
   openPanel('Type & Play', h('div', {}, needKeyboardNote(), progress, games), { onClose: () => game.world.setView('home') });
 }

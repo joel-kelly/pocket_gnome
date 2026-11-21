@@ -143,6 +143,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .game-list { display: grid; gap: 10px; }
 .game-card { display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center; text-align: left; background: #fff; border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 16px; padding: 12px; cursor: pointer; color: var(--ink); font: inherit; }
 .game-card:hover { border-color: var(--leaf-l); }
+.game-card.check { border-color: var(--gold); background: #fff8e0; }
 .game-card.locked { cursor: default; opacity: 0.6; border-bottom-width: 2px; background: var(--paper-2); }
 .gemo { font-size: 36px; text-align: center; }
 .gtxt { display: grid; gap: 2px; }

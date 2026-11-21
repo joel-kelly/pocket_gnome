@@ -171,7 +171,6 @@ function step(now) {
 
 document.getElementById('loading').remove();
 if (!state.onboarded) game.go('depot');
-else if (!state.placed) game.go('placement');
 else game.go('home', { greet: true });
 requestAnimationFrame(frame);
 

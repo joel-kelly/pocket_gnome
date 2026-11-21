@@ -29,7 +29,7 @@ Progress is saved in the browser on that computer. **Grown-ups → Download back
 | | |
 |---|---|
 | 🏪 **Gnome Depot intro** | The first time you play, an ordinary-looking gnome (red hat, blue shirt) is waiting in the clearance aisle. Pick a style (beard, braids or a bob), repaint its hat, shirt, hair and face (the first brushstroke wakes it up!), name it and take it home. |
-| 🎯 **Placement check** | "Let's see what your fingers already know!" One short line per group of keys. Lines typed accurately and steadily mark those keys as already learned, so a kid who has practised at school doesn't start back at F and J. |
+| 🎯 **Placement check** | Optional, so the first visit goes straight from Gnome Depot to the garden. It waits at the top of Type & Play ("Already know some keys?") until it's done. Skip it and practice starts at F and J. One short line per group of keys. Lines typed accurately and steadily mark those keys as already learned, so a kid who has practised at school doesn't start back at F and J. |
 | ⌨️ **Type & Play** | Shows the stage, a little keyboard colored by how solid each key is, and progress toward the next keys. |
 | ✨ **Meet your new keys** | When new keys unlock, a short three-line lesson: a drill, a mix of "gnome spells", then real words. |
 | 📜 **Practice Scrolls** | Five calm lines of practice. No timer. |

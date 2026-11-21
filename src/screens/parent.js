@@ -1,6 +1,6 @@
 // Grown-ups corner: keyboard heatmap, progress, settings, history, save backup.
 import { h, button, modal, toast } from '../ui.js';
-import { STAGES, MAX_STAGE, KEY_ROWS, ROW_OFFSET } from '../typing/keys.js';
+import { STAGES, MAX_STAGE, KEY_ROWS, ROW_OFFSET, GNOME_ROW_STAGE } from '../typing/keys.js';
 import { stageProgress, keyRecord, currentStage, SOLID, target } from '../typing/engine.js';
 import { keysUpTo } from '../typing/keys.js';
 import { keyList } from './games.js';
@@ -20,6 +20,21 @@ function download(name, text) {
   a.download = name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// Put the kid on a stage. Earlier keys become solid; the stage's own keys
+// drop just below solid so they get practiced before the next keys unlock.
+function setStage(s, n) {
+  for (let st = 1; st < n; st++) for (const k of STAGES[st - 1].keys) {
+    const r = keyRecord(s, k);
+    r.box = Math.max(r.box, SOLID);
+    r.seen = Math.max(r.seen, 1);
+  }
+  for (const k of STAGES[n - 1].keys) { const r = keyRecord(s, k); r.box = Math.min(r.box, SOLID - 1); }
+  if (n !== s.stage) s.lastLessonStage = n - 1;
+  s.stage = n;
+  if (s.settings.maxStage && s.settings.maxStage !== 'auto') s.settings.maxStage = n;
+  s.placed = true;
 }
 
 export function openParent(game) {
@@ -46,10 +61,17 @@ export function openParent(game) {
     heat.append(r);
   });
 
+  // Stage: jump straight to any set of keys. Keys before it count as learned.
+  const pinned = s.settings.maxStage && s.settings.maxStage !== 'auto';
+  const cur = currentStage(s);
   const stageSel = h('select', { id: 'set-stage' },
-    h('option', { value: 'auto', selected: (s.settings.maxStage || 'auto') === 'auto' }, `Auto: grow as keys get solid (now stage ${s.stage}: ${STAGES[s.stage - 1].name})`),
-    ...STAGES.map((st, i) => h('option', { value: i + 1, selected: String(s.settings.maxStage) === String(i + 1) }, `Always stage ${i + 1}: up to ${st.name}`)));
-  stageSel.onchange = () => { s.settings.maxStage = stageSel.value === 'auto' ? 'auto' : Number(stageSel.value); saved(); reopen(); };
+    ...STAGES.map((st, i) => h('option', { value: i + 1, selected: cur === i + 1 },
+      `Stage ${i + 1}: ${st.name}${i === 0 ? ' (the very beginning)' : i + 1 === GNOME_ROW_STAGE ? ' (finishes Gnome Row)' : ''}`)));
+  stageSel.onchange = () => { setStage(s, Number(stageSel.value)); saved(); reopen(); };
+  const growSel = h('select', { id: 'set-grow' },
+    h('option', { value: 'auto', selected: !pinned }, 'Move on to new keys automatically once these are solid'),
+    h('option', { value: 'stay', selected: pinned }, 'Stay on this stage until I change it'));
+  growSel.onchange = () => { s.settings.maxStage = growSel.value === 'auto' ? 'auto' : currentStage(s); if (growSel.value === 'auto') s.stage = cur; saved(); reopen(); };
   const speedSel = h('select', { id: 'set-speed' }, ...[[1.4, 'Gentle (1.4 s)'], [1.0, 'Normal (1.0 s, default)'], [0.75, 'Brisk (0.75 s)'], [0.5, 'Speedy (0.5 s)']]
     .map(([v, l]) => h('option', { value: v, selected: v === fast }, l)));
   speedSel.onchange = () => { s.settings.keySeconds = Number(speedSel.value); saved(); };
@@ -91,6 +113,8 @@ export function openParent(game) {
     h('label', {}, 'Recent rounds'),
     s.history.length ? hist : h('p', {}, 'No rounds played yet.'),
     h('label', { for: 'set-stage' }, 'Which keys to practice'), stageSel,
+    h('p', { class: 'small' }, 'Keys from earlier stages count as learned. Picking an earlier stage keeps all key records, but your kid will need to get that stage\'s keys solid again to move on.'),
+    h('label', { for: 'set-grow' }, 'When those keys are solid'), growSel,
     h('label', { for: 'set-speed' }, '"Fast" target time per key (faster presses level a key up)'), speedSel,
     h('label', { for: 'set-hints' }, 'On-screen keyboard hints'), hintSel,
     h('label', { for: 'set-pace' }, 'Game pace (Astrognome balloons, Mole Patrol moles, Crumpet Café critters)'), paceSel,
@@ -107,11 +131,6 @@ export function openParent(game) {
       button('+100 acorns', () => { S.addAcorns(100); toast('+100 acorns'); }, 'small gold'),
       button('Fill all stats', () => { Object.keys(s.stats).forEach((k) => (s.stats[k] = 100)); S.save(); game.applyMood(); toast('Stats full'); }, 'small green'),
       button('Make gnome needy', () => { s.stats = { hunger: 15, thirst: 20, tidy: 10, joy: 20 }; S.save(); game.applyMood(); toast('Uh oh'); }, 'small'),
-      button('Unlock next keys', () => {
-        if (s.stage >= MAX_STAGE) return toast('All keys are unlocked');
-        for (const k of STAGES[s.stage - 1].keys) keyRecord(s, k).box = Math.max(keyRecord(s, k).box, SOLID);
-        s.stage++; S.save(); toast(`Stage ${s.stage}: ${STAGES[s.stage - 1].name}`); reopen();
-      }, 'small'),
       button('Start over (erase!)', () => {
         if (confirm('Erase EVERYTHING and start over? (Download a backup first if unsure.)')) { S.resetSave(); location.reload(); }
       }, 'small red')),

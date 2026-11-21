@@ -157,8 +157,8 @@ export class DepotScreen {
     gnome.statue = false;
     gnome.setPaint(s.paint);
     sfx.fanfare();
-    this.game.go('placement');
-    setTimeout(() => this.game.say(`There's no place like gnome! Thanks for picking me, ${s.kidName}. I'm ${s.gnomeName}!`, 6), 300);
+    // Straight to the garden: the placement check waits in Type & Play.
+    this.game.go('home', { say: `There's no place like gnome! Thanks for picking me, ${s.kidName}. I'm ${s.gnomeName}! Tap Type & Play and let's go!` });
   }
 
   update(dt) {

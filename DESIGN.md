@@ -70,7 +70,7 @@ Works like Pocket Goblin's times tables, with **keys instead of fact families**.
 | later | ' ? ! and the number row | |
 
 - **Gnome spells:** with only a few keys there are no real words, so drills like `fjf jjf` are called gnome spells. Real words take over as soon as there are enough of them.
-- **Placement check** at the start: a quick run through the stages. Any stage she types accurately and steadily is marked solid, so she doesn't start back at `fjfj`.
+- **Placement check**, optional (a required test at the start killed the excitement in playtesting). It sits at the top of Type & Play until done; skip it and she starts at F and J. A quick run through the stages. Any stage she types accurately and steadily is marked solid, so she doesn't start back at `fjfj`.
 - **Hints fade:** an on-screen keyboard shows finger colors, and the next key glows. Once a key is solid, the glow waits a moment so she can try from memory. Mastered keys only glow after a mistake.
 - **Mistakes don't need Backspace** (early on): a wrong key just doesn't count, and she presses the right one. Backspace becomes its own skill in Gnomework.
 - **Accuracy first.** Words per minute is shown, but rewards lean on clean streaks.
@@ -97,6 +97,6 @@ Works like Pocket Goblin's times tables, with **keys instead of fact families**.
 4. The garden: the gnome hops around and tells puns. Hunger, Thirst, Tidy, Joy. Spots for garden decor.
 5. Astrognome.
 6. Gnome Depot shop: hats and outfits, paints, snacks, garden decor.
-7. Grown-ups: keyboard heatmap, stage pinning, save backup.
+7. Grown-ups: keyboard heatmap, pick any stage (and optionally hold it there), save backup.
 
 Later: Workshop, device sync, play counts, the other games, vacation postcards.
