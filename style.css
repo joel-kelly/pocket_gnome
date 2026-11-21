@@ -343,5 +343,4 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .prize.fresh img { animation: bump 0.6s 3; filter: drop-shadow(0 0 8px #ffe14d); }
 .prize-won { display: grid; gap: 2px; background: #ffe9a8; border: 2px solid var(--gold); border-radius: 14px; padding: 8px 16px; }
 .prize-won b { font: 12px/1.6 var(--display); }
-.brag { display: flex; gap: 10px; align-items: center; background: #fff; border: 2px dashed var(--line); border-radius: 14px; padding: 8px 12px; font-weight: 700; text-align: left; }
 @media (max-width: 1000px) { .type-card.race .kb { --key: 28px; } .speedo { width: 104px; height: 104px; } .sp-needle { height: 32px; } .sp-num { font-size: 19px; top: 54px; } .sp-unit { bottom: 9px; } }

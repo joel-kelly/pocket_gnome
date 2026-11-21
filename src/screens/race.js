@@ -4,7 +4,7 @@
 // alongside at steady speeds set from your best. Woodland critters cheer from
 // the grandstand. Type fast (and carefully) to win trophies for the garden.
 import * as THREE from '../../vendor/three.module.min.js';
-import { h, button, toast } from '../ui.js';
+import { h, button } from '../ui.js';
 import { sfx, engine } from '../audio.js';
 import { VoxelModel, buildMesh, buildGeometry, hash3, voxelMaterial } from '../voxel.js';
 import { addLights, skyTexture, flower, thumbnail } from '../world.js';
@@ -824,7 +824,6 @@ export class RaceScreen {
     this.fx.confetti(gnome.headTop(), 40);
     gnome.act('cheer');
     this.game.line(won.length ? 'racePrize' : newBest ? 'newBest' : place === 1 ? 'raceWin' : 'raceEnd', 4);
-    const brag = `🏎️ ${s.gnomeName} and I typed ${wpm} words per minute (${acc}% accuracy) at the Grand Gnome Prix${place === 1 ? ' and WON' : ''}! Can you beat that?`;
     this.card.replaceChildren(h('div', { class: 'results' },
       h('h2', {}, this.quitted ? 'Pit stop!' : `${MEDAL[place - 1]} ${ordinal(place)} place!`),
       h('div', { class: 'race-wpm' }, h('b', {}, wpm), ' WPM'),
@@ -839,9 +838,6 @@ export class RaceScreen {
         h('span', {}, placed.every((i) => i >= 0) ? 'They\'re in your garden now.' : 'The garden is full, so use Garden to put them out.')) : null,
       missed.length ? h('p', { class: 'small' }, `So fast! But trophies need ${PRIZE_ACCURACY}% accuracy (you had ${acc}%). Slow down a tiny bit and you'll win the ${missed[0].name}!`) : null,
       this.shelf(won.map((p) => p.id)),
-      full && wpm > 0 ? h('div', { class: 'brag' }, h('span', {}, brag), button('📋 Copy to brag', () => {
-        navigator.clipboard?.writeText(brag).then(() => toast('Copied! Paste it to your friends.'), () => toast('Couldn\'t copy. Try writing it down!'));
-      }, 'small')) : null,
       h('div', { class: 'row' },
         button('Race again! (Enter)', () => this.countdown(), 'gold'),
         button('Home (Esc)', () => this.game.go('home'), ''))));
