@@ -37,7 +37,7 @@ export function newState() {
     best: { astro: 0, beet: 0, moles: 0, cafe: 0, race: 0, raceAcc: 0 },
     autoPace: {},           // per-game pace when Game pace is on auto (1 = normal)
     history: [],
-    settings: { sound: true, keySeconds: 1.0, maxStage: 'auto', hints: 'auto', pace: 'auto' },
+    settings: { sound: true, keySeconds: 1.0, maxStage: 'auto', hints: 'auto', pace: 'auto', raceSecs: 60 },
   };
 }
 

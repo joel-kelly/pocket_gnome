@@ -1,8 +1,8 @@
-// Grand Gnome Prix: a one-minute typing speed test on a race track.
+// Grand Gnome Prix: a typing speed test on a race track (30 seconds, 1 or 2 minutes).
 // The gnome drives an open-wheel racer, and the car only moves when you type
 // the right keys, so its speed IS your typing speed. Three critter rivals race
-// alongside at steady speeds set from your best. Woodland critters cheer from
-// the grandstand. Type fast (and carefully) to win trophies for the garden.
+// alongside at speeds picked at random, from slow to a bit past your best.
+// Woodland critters cheer from the grandstand. Type fast (and carefully) to win trophies for the garden.
 import * as THREE from '../../vendor/three.module.min.js';
 import { h, button } from '../ui.js';
 import { sfx, engine } from '../audio.js';
@@ -16,7 +16,14 @@ import { TextPicker } from '../typing/engine.js';
 import { TypePad } from '../typing/pad.js';
 import { afterRound } from './games.js';
 
-const RACE_SECONDS = 60;
+// Race lengths. One minute is the classic typing test; records and trophies need a minute or more,
+// because a short sprint flatters your speed.
+export const RACE_LENGTHS = [
+  { secs: 30, name: 'Sprint', label: '30 sec' },
+  { secs: 60, name: 'Grand Prix', label: '1 min' },
+  { secs: 120, name: 'Endurance', label: '2 min' },
+];
+const RECORD_SECS = 60;
 const PER_CHAR = 60;           // track units per correct key. 1 wpm = 5 keys a minute = 5 units a second.
 const PER_WPM = PER_CHAR * 5 / 60;
 export const PRIZE_ACCURACY = 85; // trophies need a careful race, not just a fast one
@@ -27,15 +34,25 @@ const LANES = [0, -27, -54, -81]; // you're in the near lane
 const TRACK_NEAR = 18, TRACK_FAR = -96;
 const METERS = 10;              // track units per meter (for the gaps on the leaderboard)
 
-// The rivals. k: their speed compared to your best.
+// The rivals. Each race they get three random speeds, from slow up to a bit
+// faster than your best, so some races you'll smoke them and some you won't.
 const RIVALS = [
-  { id: 'hedgehog', emo: '🦔', name: 'Hedgehog', k: 0.75, body: '#3f9a4a', accent: '#f4d03f', num: 2, wave: 3 },
-  { id: 'squirrel', emo: '🐿️', name: 'Squirrel', k: 1.0, body: '#e8823a', accent: '#fbf7ee', num: 3, wave: 2 },
-  { id: 'bunny', emo: '🐰', name: 'Bunny', k: 1.15, body: '#8a5ad8', accent: '#f19bc0', num: 4, wave: 2 },
+  { id: 'hedgehog', emo: '🦔', name: 'Hedgehog', body: '#3f9a4a', accent: '#f4d03f', num: 2, wave: 3 },
+  { id: 'squirrel', emo: '🐿️', name: 'Squirrel', body: '#e8823a', accent: '#fbf7ee', num: 3, wave: 2 },
+  { id: 'bunny', emo: '🐰', name: 'Bunny', body: '#8a5ad8', accent: '#f19bc0', num: 4, wave: 2 },
 ];
-export function rivalSpeeds(best) {
+export function rivalSpeeds(best, rand = Math.random) {
   const base = best > 0 ? best : 12;
-  return RIVALS.map((r) => Math.max(5, Math.round(base * r.k) + (r.k > 1 ? 1 : 0)));
+  const lo = Math.max(5, Math.round(base * 0.5));
+  const hi = Math.max(lo + 6, Math.round(base * 1.15) + 1);
+  const gap = Math.min(3, Math.floor((hi - lo) / 4)); // keep them from bunching up on one speed
+  let picks = [];
+  for (let tries = 0; tries < 50; tries++) {
+    picks = RIVALS.map(() => lo + Math.floor(rand() * (hi - lo + 1)));
+    const sorted = [...picks].sort((a, b) => a - b);
+    if (sorted[1] - sorted[0] >= gap && sorted[2] - sorted[1] >= gap) break;
+  }
+  return picks;
 }
 const ordinal = (n) => n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th');
 const MEDAL = ['🥇', '🥈', '🥉', '🏁'];
@@ -425,7 +442,7 @@ export class RaceScreen {
     this.tags = h('div', { class: 'race-tags' });
     this.tagEls = RIVALS.map((r) => { const el = h('div', { class: 'race-tag hidden' }); this.tags.append(el); return el; });
     this.card = h('div', { class: 'type-card race' });
-    this.timePill = h('div', { class: 'pill' }, `⏱ ${RACE_SECONDS}`);
+    this.timePill = h('div', { class: 'pill' }, `⏱ ${this.raceSecs}`);
     this.lapPill = h('div', { class: 'pill' }, '🏁 Lap 1');
     this.bestPill = h('div', { class: 'pill' }, `Best: ${this.state.best.race || 0} WPM`);
     this.board = h('div', { class: 'race-board' });
@@ -457,7 +474,13 @@ export class RaceScreen {
     this.root.innerHTML = '';
   }
 
+  get raceSecs() {
+    const v = this.state.settings.raceSecs;
+    return RACE_LENGTHS.some((l) => l.secs === v) ? v : 60;
+  }
+
   resetRace() {
+    this.secs = this.raceSecs; // locked in for this race
     this.elapsed = 0;
     this.chars = 0;          // right keys this race
     this.dist = 0;           // where the car is drawn (chases chars * PER_CHAR)
@@ -480,11 +503,31 @@ export class RaceScreen {
     const best = this.state.best.race || 0;
     this.card.replaceChildren(h('div', { class: 'intro' },
       h('h2', {}, 'Grand Gnome Prix!'),
-      h('p', {}, 'One minute, flat out! Your car only goes when you type the right keys, so the faster you type, the faster you zoom.'),
+      h('p', {}, 'Flat out till the flag! Your car only goes when you type the right keys, so the faster you type, the faster you zoom.'),
       h('p', { class: 'small' }, `Race the critters: ${this.rivals.map((r) => `${r.emo} ${r.name} (${r.wpm} WPM)`).join(', ')}. Win trophies for your garden by typing fast with at least ${PRIZE_ACCURACY}% accuracy.`),
+      this.lengthPicker(),
       this.shelf(),
       h('p', { class: 'small' }, best ? `Your top speed: ${best} WPM${this.state.best.raceAcc ? ` (${this.state.best.raceAcc}% accuracy)` : ''}` : 'No top speed yet. Set one!'),
       h('div', { class: 'row' }, button('Start your engines! (Enter)', () => this.countdown(), 'gold big'))));
+  }
+
+  // Pick how long the race is (keys 1, 2, 3 work too).
+  lengthPicker() {
+    const el = h('div', { class: 'tabs race-len' }, ...RACE_LENGTHS.map((l, i) => h('button', {
+      class: 'tab' + (l.secs === this.raceSecs ? ' on' : ''),
+      title: l.secs < RECORD_SECS ? 'A quick warm-up: earns acorns, but top speeds and trophies need 1 minute or more' : '',
+      onclick: () => this.setLength(l.secs),
+    }, `${i + 1}. ${l.name} · ${l.label}`)));
+    this.lenEl = el;
+    return el;
+  }
+  setLength(secs) {
+    if (secs === this.raceSecs) return;
+    sfx.click();
+    this.state.settings.raceSecs = secs;
+    this.game.S.save();
+    this.lenEl?.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('on', RACE_LENGTHS[i].secs === secs));
+    if (this.phase === 'ready' || this.phase === 'results') this.timePill.textContent = `⏱ ${secs}`;
   }
 
   // All the race trophies: the ones you've won are shiny, the rest say how fast to go.
@@ -506,7 +549,7 @@ export class RaceScreen {
     this.pad?.destroy();
     this.pad = null;
     this.fx.clear();
-    this.timePill.textContent = `⏱ ${RACE_SECONDS}`;
+    this.timePill.textContent = `⏱ ${this.raceSecs}`;
     this.timePill.classList.remove('hot');
     this.lapPill.textContent = '🏁 Lap 1';
     this.updateBoard(true);
@@ -593,21 +636,29 @@ export class RaceScreen {
     while (this.keyTimes.length && this.keyTimes[0] < since) this.keyTimes.shift();
     return this.keyTimes.length / 5 / (win / 60);
   }
+  // Track units a second you've been typing lately, over a few seconds so word gaps smooth out.
+  pace() {
+    const win = Math.min(3, Math.max(0.75, this.elapsed));
+    const since = this.elapsed - win;
+    let n = 0;
+    for (let i = this.keyTimes.length - 1; i >= 0 && this.keyTimes[i] >= since; i--) n++;
+    return (n * PER_CHAR) / win;
+  }
   rivalDist(r, t) {
     // Steady on average, with a little surge and fade so it looks like racing.
     const v = r.wpm * PER_WPM;
-    return v * t + v * 0.9 * Math.sin((2 * Math.PI * r.wave * t) / RACE_SECONDS);
+    return v * t + v * 0.9 * Math.sin((2 * Math.PI * r.wave * t) / this.secs);
   }
 
   update(dt) {
     const time = performance.now() / 1000;
     if (this.phase === 'play') {
       this.elapsed = (performance.now() - this.startTime) / 1000;
-      const left = RACE_SECONDS - this.elapsed;
+      const left = this.secs - this.elapsed;
       this.timePill.textContent = `⏱ ${Math.max(0, Math.ceil(left))}`;
       this.timePill.classList.toggle('hot', left < 10);
-      for (const r of this.rivals) r.dist = this.rivalDist(r, Math.min(this.elapsed, RACE_SECONDS));
-      if (left <= 0) { this.elapsed = RACE_SECONDS; this.finish(); }
+      for (const r of this.rivals) r.dist = this.rivalDist(r, Math.min(this.elapsed, this.secs));
+      if (left <= 0) { this.elapsed = this.secs; this.finish(); }
     } else if (this.phase === 'results') {
       // After the flag everyone rolls to a stop.
       for (const r of this.rivals) { r.roll = (r.roll ?? r.wpm * PER_WPM) * Math.pow(0.3, dt); r.dist += r.roll * dt; }
@@ -615,9 +666,17 @@ export class RaceScreen {
     // The car chases where your typing has got it to.
     const target = this.chars * PER_CHAR + (this.phase === 'results' ? this.coast || 0 : 0);
     if (this.phase === 'results') this.coast = (this.coast || 0) + (this.coastV = (this.coastV ?? this.speed) * Math.pow(0.3, dt)) * dt;
-    const prev = this.dist;
-    this.dist += (target - this.dist) * (1 - Math.exp(-dt * 3.5));
-    this.speed = dt > 0 ? (this.dist - prev) / dt : 0;
+    if (this.phase === 'play') {
+      // Cruise at your rolling pace (so the car doesn't brake between words), with a
+      // gentle pull toward where your typing has really got you so it never drifts off.
+      const want = Math.max(0, this.pace() + (target - this.dist) * 0.5);
+      this.speed = Math.max(0, this.speed + (want - this.speed) * (1 - Math.exp(-dt * 3)));
+      this.dist += this.speed * dt;
+    } else {
+      const prev = this.dist;
+      this.dist += (target - this.dist) * (1 - Math.exp(-dt * 3.5));
+      this.speed = dt > 0 ? (this.dist - prev) / dt : 0;
+    }
     const k = Math.min(1, this.speed / (60 * PER_WPM));
     if (this.phase === 'play') engine.set(0.06 + k * 0.94);
     else if (this.phase === 'results') { if (k < 0.02) engine.stop(); else engine.set(k * 0.6); }
@@ -681,7 +740,7 @@ export class RaceScreen {
       const x = r.dist - d;
       r.car.group.visible = Math.abs(x) < 500;
       r.car.group.position.x = x;
-      const rv = this.phase === 'play' ? r.wpm * PER_WPM * (1 + 0.9 * (2 * Math.PI * r.wave / RACE_SECONDS) * Math.cos((2 * Math.PI * r.wave * this.elapsed) / RACE_SECONDS)) : this.phase === 'results' ? (r.roll || 0) : 0;
+      const rv = this.phase === 'play' ? r.wpm * PER_WPM * (1 + 0.9 * (2 * Math.PI * r.wave / this.secs) * Math.cos((2 * Math.PI * r.wave * this.elapsed) / this.secs)) : this.phase === 'results' ? (r.roll || 0) : 0;
       for (const w of r.car.wheels) w.mesh.rotation.z -= (rv / w.R) * dt;
       r.car.lean.position.y = 0.1 * Math.min(1, rv / 200) * Math.sin(time * 47 + r.num);
       r.car.driver.rotation.z = 0.04 * Math.sin(time * 3 + r.num);
@@ -799,8 +858,9 @@ export class RaceScreen {
     for (const r of this.rivals) { r.final = this.rivalDist(r, secs); r.roll = null; }
     const rows = this.standings();
     const place = rows.findIndex((r) => r.me) + 1;
-    const full = !this.quitted;
-    // records and prizes (only for a full minute)
+    const done = !this.quitted;
+    const full = done && this.secs >= RECORD_SECS;
+    // records and prizes (only for a finished race of a minute or more)
     const oldBest = s.best.race || 0;
     const newBest = full && wpm > oldBest;
     if (newBest) { s.best.race = wpm; s.best.raceAcc = acc; }
@@ -809,7 +869,7 @@ export class RaceScreen {
     const missed = full && !careful ? PRIZES.filter((p) => wpm >= p.prize.wpm && !s.owned.includes(p.id)) : [];
     for (const p of won) s.owned.push(p.id);
     const placed = won.map((p) => this.game.placeDecor(p.id));
-    let acorns = full ? Math.round(wpm / 2) + [6, 4, 2, 1][place - 1] + (newBest ? 5 : 0) : Math.round(wpm / 4);
+    let acorns = done ? Math.round((wpm / 2) * (this.secs / 60)) + [6, 4, 2, 1][place - 1] + (newBest ? 5 : 0) : Math.round((wpm / 4) * (secs / 60));
     if (this.chars === 0) acorns = 0;
     S.addAcorns(acorns);
     s.history.push({ t: Date.now(), game: 'race', words: this.pad.stats.words, acc, wpm, score: wpm });
@@ -828,7 +888,7 @@ export class RaceScreen {
       h('h2', {}, this.quitted ? 'Pit stop!' : `${MEDAL[place - 1]} ${ordinal(place)} place!`),
       h('div', { class: 'race-wpm' }, h('b', {}, wpm), ' WPM'),
       newBest ? h('div', { class: 'res-best' }, `NEW TOP SPEED! (was ${oldBest}) +5 🌰`) : null,
-      this.quitted ? h('p', { class: 'small' }, 'Top speeds and trophies only count for a full minute.') : null,
+      this.quitted ? h('p', { class: 'small' }, 'Top speeds and trophies only count for a finished race.') : !full ? h('p', { class: 'small' }, 'Nice sprint! Top speeds and trophies need a race of 1 minute or more.') : null,
       h('div', { class: 'res-grid' },
         h('div', {}, 'Accuracy', h('b', {}, acc + '%')),
         h('div', {}, 'Finished', h('b', {}, `${ordinal(place)} of ${rows.length}`)),
@@ -838,6 +898,7 @@ export class RaceScreen {
         h('span', {}, placed.every((i) => i >= 0) ? 'They\'re in your garden now.' : 'The garden is full, so use Garden to put them out.')) : null,
       missed.length ? h('p', { class: 'small' }, `So fast! But trophies need ${PRIZE_ACCURACY}% accuracy (you had ${acc}%). Slow down a tiny bit and you'll win the ${missed[0].name}!`) : null,
       this.shelf(won.map((p) => p.id)),
+      this.lengthPicker(),
       h('div', { class: 'row' },
         button('Race again! (Enter)', () => this.countdown(), 'gold'),
         button('Home (Esc)', () => this.game.go('home'), ''))));
@@ -847,6 +908,8 @@ export class RaceScreen {
   onKey(e) {
     if (this.phase === 'ready' || this.phase === 'results') {
       if (e.key === 'Enter') { e.preventDefault(); this.countdown(); }
+      const n = Number(e.key);
+      if (n >= 1 && n <= RACE_LENGTHS.length) { e.preventDefault(); this.setLength(RACE_LENGTHS[n - 1].secs); }
       if (e.key === 'Escape') this.game.go('home');
       return;
     }
