@@ -205,6 +205,7 @@ export class MolesScreen {
       state: this.state,
       onKey: (k) => this.onPadKey(k),
       onLine: () => this.boop(),
+      mustFix: true, // the order (or the mole's word) has to be right
     });
     this.waitEl = h('div', { class: 'mole-wait' }, 'Watch the holes...');
     this.card.replaceChildren(this.waitEl, this.pad.el);
@@ -384,7 +385,7 @@ export class MolesScreen {
     hl.sign.style.left = p.x + 'px';
     hl.sign.style.top = p.y + 'px';
     const isTarget = hl === this.target;
-    const typed = isTarget ? this.pad.i : 0;
+    const typed = isTarget ? this.pad.progress : 0;
     const key = `${hl.word}|${typed}|${isTarget}`;
     if (hl.signKey !== key) {
       hl.signKey = key;

@@ -638,6 +638,7 @@ export class RaceScreen {
       onKey: (k) => this.onPadKey(k),
       onWord: (w) => this.onWord(w),
       onLine: () => this.nextLine(),
+      onBack: () => { if (this.phase === 'play') this.chars = this.pad.net; },
       ...this.padOpts(),
     });
     this.card.replaceChildren(this.pad.el);
@@ -657,8 +658,8 @@ export class RaceScreen {
 
   onPadKey({ ok }) {
     if (this.phase !== 'play') return;
+    this.chars = this.pad.net; // letters that are right right now: a mistake doesn't move you, fixing it does
     if (ok) {
-      this.chars++;
       this.keyTimes.push(this.elapsed);
       this.wrongRow = 0;
       sfx.key(this.pad.i);

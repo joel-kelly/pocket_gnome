@@ -56,7 +56,7 @@ It works like Pocket Goblin's times tables, with **keys instead of fact families
 - **Right but slow**: the level stays the same. There's no punishment for being slow.
 - **Wrong**: the level drops 1.
 
-Weak and slow keys show up more often in the words and spells. Mistakes never need Backspace: a wrong key just doesn't count, and you press the right one.
+Weak and slow keys show up more often in the words and spells. Typing works like a real typing test: a wrong key shows what you actually typed, in red, and moves on. Backspace goes back so you can fix it (Ctrl or Alt + Backspace takes back a whole word), and the keyboard points to Backspace after a slip. You can also just keep going. Accuracy counts a fixed mistake as half a mistake, so fixing helps your accuracy, but the time it takes lowers your speed (which only counts letters that are right). In Mole Patrol and the Crumpet Café the word has to be right before it counts, so red letters there need fixing.
 
 **Keys unlock in stages**, following the fingers out from Gnome Row (the home row): F J → D K → S L → A ; (Gnome Row complete!) → G H → E I → R U → T O → N C → W M → Y P → B V → Q Z X → capitals (Shift) → periods and commas. The next stage unlocks when 70% of the unlocked keys are solid (level 3+) **and** every key in the newest stage is solid. Grown-ups can leave this on Auto or pin it to any stage.
 

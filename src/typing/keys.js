@@ -60,7 +60,7 @@ export const isLeftHand = (k) => (fingerOf(k) || '').startsWith('L');
 
 // On-screen keyboard rows. Each key: [id, label, width]. id = the character typed.
 export const KEY_ROWS = [
-  [['q'], ['w'], ['e'], ['r'], ['t'], ['y'], ['u'], ['i'], ['o'], ['p']],
+  [['q'], ['w'], ['e'], ['r'], ['t'], ['y'], ['u'], ['i'], ['o'], ['p'], ['Backspace', 'Back', 1.6]],
   [['a'], ['s'], ['d'], ['f'], ['g'], ['h'], ['j'], ['k'], ['l'], [';']],
   [['ShiftLeft', '⇧', 1.6], ['z'], ['x'], ['c'], ['v'], ['b'], ['n'], ['m'], [','], ['.'], ['ShiftRight', '⇧', 1.6]],
   [[' ', '', 6]],
