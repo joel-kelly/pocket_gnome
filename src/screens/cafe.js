@@ -283,6 +283,7 @@ export class CafeScreen {
       state: this.state,
       onKey: (k) => this.onPadKey(k),
       onLine: () => this.serve(),
+      mustFix: true, // the order (or the mole's word) has to be right
     });
     this.waitEl = h('div', { class: 'mole-wait' }, 'Here comes a customer...');
     this.card.replaceChildren(this.waitEl, this.pad.el);
@@ -536,7 +537,7 @@ export class CafeScreen {
     const p = this.game.world.toScreen(c.group.position.clone().add(new THREE.Vector3(0, c.head + 3, 0)), this.camera);
     c.bubble.style.left = p.x + 'px';
     c.bubble.style.top = p.y + 'px';
-    const typed = this.pad.i;
+    const typed = this.pad.progress;
     const key = `${c.order.text}|${typed}`;
     if (c.bubbleKey !== key) {
       c.bubbleKey = key;

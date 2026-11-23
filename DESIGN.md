@@ -72,7 +72,7 @@ Works like Pocket Goblin's times tables, with **keys instead of fact families**.
 - **Gnome spells:** with only a few keys there are no real words, so drills like `fjf jjf` are called gnome spells. Real words take over as soon as there are enough of them.
 - **Placement check** at the start: a quick run through the stages. Any stage she types accurately and steadily is marked solid, so she doesn't start back at `fjfj`.
 - **Hints fade:** an on-screen keyboard shows finger colors, and the next key glows. Once a key is solid, the glow waits a moment so she can try from memory. Mastered keys only glow after a mistake.
-- **Mistakes don't need Backspace** (early on): a wrong key just doesn't count, and she presses the right one. Backspace becomes its own skill in Gnomework.
+- **Mistakes show, and Backspace fixes them**: a wrong key shows the letter she actually typed (in red) and moves on, like a real typing test. Backspace goes back to fix it; a fixed mistake counts as half a mistake for accuracy, but costs time. In Mole Patrol and the Café the word has to be right before it counts.
 - **Accuracy first.** Words per minute is shown, but rewards lean on clean streaks.
 
 ## Games

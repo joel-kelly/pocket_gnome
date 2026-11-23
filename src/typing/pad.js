@@ -1,6 +1,11 @@
 // The typing card used by every typing game: the line to type (on a little
 // wooden garden sign), a peek at the next line, and an on-screen keyboard
 // that shows which finger to use. Keyboard hints fade as keys get solid.
+//
+// Typing works like a real typing test: a wrong key shows what you actually
+// typed (in red) and moves on. Backspace goes back so you can fix it
+// (Ctrl/Alt+Backspace takes back a whole word). Fixing a mistake wins back
+// half its accuracy, but the time it takes slows your speed.
 import { h } from '../ui.js';
 import { KEY_ROWS, ROW_OFFSET, FINGERS, fingerOf, keyForChar, shiftFor, keysUpTo } from './keys.js';
 import { recordKey, hintDelay, currentStage } from './engine.js';
@@ -12,7 +17,9 @@ export class TypePad {
   /**
    * opts.state: the save (keys get recorded there)
    * opts.stage: stage being practiced (for which keys look unlocked)
-   * opts.onKey({ ok, ch, secs, timed }), opts.onWord({ word, secs, clean }), opts.onLine()
+   * opts.onKey({ ok, ch, secs, timed }), opts.onWord({ word, secs, clean, right }), opts.onLine(), opts.onBack()
+   *   onWord fires once per word, when you first type past its end. clean: no mistakes in it, ever. right: no mistakes left in it.
+   * opts.mustFix: true if a line only counts once every letter is right (Mole Patrol, the café)
    * opts.record: false to not count keys toward levels (e.g. the placement check keeps its own score)
    * opts.hints: false for no finger hints; opts.keyboard: false to hide the on-screen keyboard (grown-up mode)
    */
@@ -33,7 +40,9 @@ export class TypePad {
     if (opts.keyboard !== false) this.el.append(this.kb);
     this.text = '';
     this.i = 0;
-    this.stats = { right: 0, wrong: 0, chars: 0, start: 0, last: 0, words: 0, cleanWords: 0 };
+    this.typed = [];
+    this.stats = { right: 0, wrong: 0, start: 0, last: 0, words: 0, cleanWords: 0 };
+    this.tot = { clean: 0, fixed: 0, bad: 0 }; // positions from lines already left behind
     this.paused = false;
   }
 
@@ -47,7 +56,7 @@ export class TypePad {
       for (const [id, label, w] of row) {
         const fid = fingerOf(id);
         const isShift = id.startsWith('Shift');
-        const open = id === ' ' || unlocked.has(id) || (isShift && shiftOn);
+        const open = id === ' ' || id === 'Backspace' || unlocked.has(id) || (isShift && shiftOn);
         const k = h('div', {
           class: 'kb-key' + (open ? '' : ' locked') + (id === 'f' || id === 'j' ? ' bump' : '') + (isShift ? ' shift' : ''),
           style: { width: `calc(${w || 1} * var(--key) + ${((w || 1) - 1) * 5}px)`, '--fc': fid ? FINGERS[fid].color : '#ddd' },
@@ -62,12 +71,18 @@ export class TypePad {
 
   // Show a new line (and optionally a peek at the next one).
   setText(text, next = '') {
+    const t = this.lineTally();
+    for (const k in t) this.tot[k] += t[k];
     this.text = text;
     this.i = 0;
-    this.mistakeHere = false;
+    this.typed = [];        // what was typed at each position
+    this.missed = [];       // positions that ever had a wrong key
+    this.recR = []; this.recW = []; // positions already counted toward key levels
+    this.untimed = false;   // the last thing pressed was a wrong key or Backspace
+    this.complete = false;
+    this.wordsDone = 0;
     this.lineStart = performance.now();
     this.wordStart = this.lineStart;
-    this.wordClean = true;
     this.lineEl.replaceChildren(...[...text].map((c) => h('span', { class: 'ch' + (c === ' ' ? ' sp' : '') }, c === ' ' ? '·' : c)));
     this.nextEl.textContent = next;
     this.mark();
@@ -78,9 +93,17 @@ export class TypePad {
 
   mark() {
     const spans = this.lineEl.children;
-    for (let j = 0; j < spans.length; j++) spans[j].className = 'ch' + (this.text[j] === ' ' ? ' sp' : '') + (j < this.i ? ' done' : j === this.i ? ' cur' : '');
+    for (let j = 0; j < spans.length; j++) {
+      const want = this.text[j], got = j < this.i ? this.typed[j] : want;
+      const bad = got !== want;
+      spans[j].className = 'ch' + (want === ' ' && !bad ? ' sp' : '') + (j < this.i ? (bad ? ' bad' : ' done') : j === this.i ? ' cur' : '');
+      const show = got === ' ' ? (bad ? '_' : '·') : got;
+      if (spans[j].textContent !== show) spans[j].textContent = show;
+    }
     this.clearHint();
-    if (this.done || this.opts.hints === false) return;
+    if (this.opts.hints === false) return;
+    if ((this.i > 0 && this.typed[this.i - 1] !== this.text[this.i - 1]) || (this.done && !this.complete)) { this.showFix(); return; }
+    if (this.done) return;
     const ch = this.expected;
     const delay = hintDelay(this.state, keyForChar(ch));
     if (delay === 0) this.showHint();
@@ -102,6 +125,14 @@ export class TypePad {
       : `Press ${what} with your <b>${finger}</b>`;
     this.hintEl.classList.add('on');
   }
+  // After a mistake: point at Backspace.
+  showFix() {
+    this.keyEls.Backspace?.classList.add('glow');
+    this.hintEl.innerHTML = this.done
+      ? 'Fix the red letters: press <b>Backspace</b> with your right pinky'
+      : this.opts.mustFix ? 'Oops! Press <b>Backspace</b> to fix it' : 'Oops! Press <b>Backspace</b> to fix it, or keep going';
+    this.hintEl.classList.add('on');
+  }
   clearHint() {
     clearTimeout(this.hintTimer);
     for (const el of Object.values(this.keyEls)) el.classList.remove('glow');
@@ -110,72 +141,141 @@ export class TypePad {
 
   // Handle a keydown. Returns true if it was a typing key.
   key(e) {
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      if (!this.paused && !e.metaKey) this.backspace(e.ctrlKey || e.altKey);
+      return true;
+    }
     if (e.ctrlKey || e.metaKey || e.altKey) return false;
     if (SWALLOW.has(e.key)) e.preventDefault();
     this.capsEl.classList.toggle('hidden', !e.getModifierState?.('CapsLock'));
-    if (this.paused || this.done || e.key.length !== 1) return false;
+    if (this.paused || this.complete || e.key.length !== 1) return false;
     e.preventDefault();
+    if (this.done) { this.oops(this.i - 1); return true; } // at the end with red letters left (mustFix): fix them first
     const now = performance.now();
-    const ch = this.expected;
+    const j = this.i;
+    const ch = this.text[j];
     const ok = e.key === ch;
     const k = keyForChar(ch);
     const secs = (now - (this.stats.last || this.lineStart)) / 1000;
     if (!this.stats.start) this.stats.start = now;
-    const press = this.keyEls[e.key.toLowerCase()];
-    if (press) { press.classList.remove('press'); void press.offsetWidth; press.classList.add('press'); }
+    this.press(this.keyEls[e.key.toLowerCase()]);
+    const rec = this.opts.record !== false;
+    this.typed[j] = e.key;
+    this.stats.last = now;
+    this.i++;
     if (ok) {
-      // A press counts for speed unless it's the first of the line, came after a mistake, or after a long pause.
-      const timed = this.i > 0 && !this.mistakeHere && secs < 4;
-      if (this.opts.record !== false) {
+      // A press counts for speed unless it's the first of the line, or came after a mistake, a Backspace or a long pause.
+      const timed = j > 0 && !this.missed[j] && !this.untimed && secs < 4;
+      if (rec && !this.recR[j]) {
+        this.recR[j] = true;
         recordKey(this.state, k, true, secs, timed);
         if (/[A-Z]/.test(ch)) recordKey(this.state, 'Shift', true, secs, timed);
       }
       this.stats.right++;
-      this.stats.chars++;
-      this.stats.last = now;
-      this.mistakeHere = false;
-      this.i++;
+      this.untimed = false;
       this.opts.onKey?.({ ok: true, ch, secs, timed });
-      if (ch === ' ' || this.done) this.finishWord(now);
-      this.mark();
-      if (this.done) this.opts.onLine?.();
     } else {
-      if (!this.mistakeHere && this.opts.record !== false) {
+      if (rec && !this.recW[j]) {
+        this.recW[j] = true;
         recordKey(this.state, k, false);
         if (/[A-Z]/.test(ch) && e.key === ch.toLowerCase()) recordKey(this.state, 'Shift', false);
       }
-      if (!this.mistakeHere) this.stats.wrong++;
-      this.mistakeHere = true;
-      this.wordClean = false;
-      const cur = this.lineEl.children[this.i];
-      if (cur) { cur.classList.remove('oops'); void cur.offsetWidth; cur.classList.add('oops'); }
-      this.showHint();
+      this.missed[j] = true;
+      this.stats.wrong++;
+      this.untimed = true;
       this.opts.onKey?.({ ok: false, ch, typed: e.key, secs });
     }
+    if (ch === ' ' || this.done) this.finishWord(now);
+    this.mark();
+    if (!ok) this.oops(j);
+    this.checkLine();
     return true;
   }
 
-  finishWord(now) {
-    // The word just finished: from the last space (or line start) to here.
-    const before = this.text.slice(0, this.i).trimEnd();
-    const word = before.slice(before.lastIndexOf(' ') + 1);
+  // Go back one letter, or (word = true) back to the start of the word.
+  backspace(word) {
+    if (this.complete || this.i === 0) return;
+    let to = this.i - 1;
     if (word) {
-      this.stats.words++;
-      if (this.wordClean) this.stats.cleanWords++;
-      this.opts.onWord?.({ word, secs: (now - this.wordStart) / 1000, clean: this.wordClean });
+      to = this.i;
+      while (to > 0 && this.text[to - 1] === ' ') to--;
+      while (to > 0 && this.text[to - 1] !== ' ') to--;
     }
-    this.wordStart = now;
-    this.wordClean = true;
+    while (this.i > to) this.typed[--this.i] = undefined;
+    this.untimed = true;
+    this.press(this.keyEls.Backspace);
+    this.opts.onBack?.();
+    this.mark();
   }
 
-  // Words per minute (5 characters = 1 word) and accuracy so far.
+  press(el) { if (el) { el.classList.remove('press'); void el.offsetWidth; el.classList.add('press'); } }
+  oops(j) {
+    const el = this.lineEl.children[j];
+    if (el) { el.classList.remove('oops'); void el.offsetWidth; el.classList.add('oops'); }
+  }
+
+  // The line is done when you reach the end (and, with mustFix, when nothing is red).
+  checkLine() {
+    if (!this.done || this.complete || !this.text.length) return;
+    if (this.opts.mustFix && this.typed.some((c, j) => c !== this.text[j])) return;
+    this.complete = true;
+    this.clearHint();
+    this.opts.onLine?.();
+  }
+
+  finishWord(now) {
+    // The word just finished: from the last space (or line start) to here. Each word only counts once,
+    // so backing up over it and typing it again doesn't count it twice.
+    const end = this.i;
+    const idx = (this.text.slice(0, end - 1).match(/ /g) || []).length;
+    if (idx < this.wordsDone) return;
+    this.wordsDone = idx + 1;
+    const from = this.text.lastIndexOf(' ', end - 2) + 1;
+    const word = this.text.slice(from, end).trim();
+    if (word) {
+      let clean = true, right = true;
+      for (let j = from; j < end; j++) { if (this.missed[j]) clean = false; if (this.typed[j] !== this.text[j]) right = false; }
+      this.stats.words++;
+      if (clean) this.stats.cleanWords++;
+      this.opts.onWord?.({ word, secs: (now - this.wordStart) / 1000, clean, right });
+    }
+    this.wordStart = now;
+  }
+
+  // How the letters typed so far on this line stand: right first time, fixed, or still wrong.
+  lineTally() {
+    const t = { clean: 0, fixed: 0, bad: 0 };
+    for (let j = 0; j < this.i; j++) {
+      if (this.typed[j] !== this.text[j]) t.bad++;
+      else if (this.missed[j]) t.fixed++;
+      else t.clean++;
+    }
+    return t;
+  }
+  // Letters that are right right now (all lines). This is what speed counts.
+  get net() {
+    const t = this.lineTally();
+    return this.tot.clean + this.tot.fixed + t.clean + t.fixed;
+  }
+  // How many letters at the start of the line are right (for word signs in the games).
+  get progress() {
+    let j = 0;
+    while (j < this.i && this.typed[j] === this.text[j]) j++;
+    return j;
+  }
+
+  // Words per minute (5 characters = 1 word), counting only letters that are right.
   get wpm() {
     const mins = (this.stats.last - this.stats.start) / 60000;
-    return mins > 0.05 ? Math.round(this.stats.chars / 5 / mins) : 0;
+    return mins > 0.05 ? Math.round(this.net / 5 / mins) : 0;
   }
+  // Accuracy: letters right first time count fully, mistakes you fixed count half, mistakes left in count zero.
   get accuracy() {
-    const t = this.stats.right + this.stats.wrong;
-    return t ? Math.round((this.stats.right / t) * 100) : 100;
+    const t = this.lineTally();
+    const clean = this.tot.clean + t.clean, fixed = this.tot.fixed + t.fixed, bad = this.tot.bad + t.bad;
+    const all = clean + fixed + bad;
+    return all ? Math.round(((clean + fixed / 2) / all) * 100) : 100;
   }
 
   pause(on = true) { this.paused = on; if (on) this.clearHint(); else this.mark(); }

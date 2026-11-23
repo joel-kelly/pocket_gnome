@@ -227,6 +227,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .tp-line .ch.cur { background: #fff4dc; color: var(--ink); box-shadow: 0 4px 0 var(--gold); }
 .tp-line .ch.cur.sp { color: #b8a888; }
 .tp-line .ch.oops { animation: oops 0.35s; background: #ffb0a8 !important; }
+.tp-line .ch.bad { background: #ffb0a8; color: #8a1a14; }
 @keyframes oops { 20% { transform: translateX(-4px) rotate(-4deg); } 60% { transform: translateX(4px) rotate(4deg); } }
 .tp-next { font: 11px/1.6 var(--mono); color: rgba(255, 244, 220, 0.6); text-align: center; margin-top: 4px; min-height: 1.2em; }
 .tp-hint { font-weight: 700; color: var(--muted); min-height: 1.4em; opacity: 0; transition: opacity 0.2s; text-align: center; }
@@ -357,6 +358,7 @@ body.rage-mode .tp-line .ch.sp { color: rgba(232, 226, 214, 0.25); }
 body.rage-mode .tp-line .ch.done { color: #9af07a; }
 body.rage-mode .tp-line .ch.cur { background: var(--rage-yel); color: #1d1b1e; box-shadow: 0 4px 0 var(--rage-red); }
 body.rage-mode .tp-line .ch.oops { background: var(--rage-red) !important; color: #fff; }
+body.rage-mode .tp-line .ch.bad { background: var(--rage-red); color: #fff; }
 body.rage-mode .tp-next { font-size: clamp(10px, 1vw, 13px); color: rgba(232, 226, 214, 0.45); }
 body.rage-mode .small, body.rage-mode .mole-wait, body.rage-mode .race-wpm { color: #b8aea0; }
 body.rage-mode .race-wpm b { color: var(--rage-yel); }
