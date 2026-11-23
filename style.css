@@ -397,9 +397,9 @@ body.rage-mode .modal-wrap { background: rgba(10, 6, 14, 0.6); }
 .rage-boards:empty { display: none; }
 .rage-boards h3, .rage-board-modal h3 { font: 10px/1.6 var(--display); margin: 4px 0; }
 @media (max-width: 800px) { .rage-boards { grid-template-columns: 1fr; } }
-.rage-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.rage-table { width: 100%; border-collapse: collapse; font: 10px/1.6 var(--display); } /* Pixelify's 2, 5 and 8 read as S at this size */
 .rage-table th { font: 8px var(--display); color: #8a8290; text-align: left; padding: 4px 6px; border-bottom: 2px solid #4a4650; }
-.rage-table td { padding: 3px 6px; border-bottom: 1px solid #34303a; white-space: nowrap; }
+.rage-table td { padding: 5px 6px; border-bottom: 1px solid #34303a; white-space: nowrap; }
 .rage-table tr.hi td { background: rgba(255, 200, 30, 0.18); color: var(--rage-yel); }
 .rage-table tr.click { cursor: pointer; }
 .rage-table tr.click:hover td { background: rgba(255, 74, 46, 0.18); }

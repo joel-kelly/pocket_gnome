@@ -311,9 +311,9 @@ export class RageScreen extends RaceScreen {
     submitScore({ initials: who, wpm, acc, secs: this.secs, series: this.prefs.series, place }).then((res) => {
       if (res.queued) { status.textContent = 'Couldn\'t reach the leaderboard. Saved; it\'ll post after your next race.'; show(null); return; }
       const best = res.isBest
-        ? (res.prevBest ? ` NEW PERSONAL BEST (was ${res.prevBest.score})!` : ' First race on the board!')
-        : ` Your best: ${res.prevBest.score}.`;
-      status.replaceChildren(h('b', {}, `#${res.rank} of ${res.of}`), ` all-time at ${lenLabel(this.secs)}.${best}`);
+        ? (res.prevBest ? [' NEW PERSONAL BEST (was ', h('b', {}, res.prevBest.score), ')!'] : ' First race on the board!')
+        : [' Your best: ', h('b', {}, res.prevBest.score), '.'];
+      status.replaceChildren(h('b', {}, `#${res.rank} of ${res.of}`), ` all-time at ${lenLabel(this.secs)}.`, ...[best].flat());
       status.classList.toggle('pb', res.isBest);
       if (res.isBest && res.prevBest) { sfx.cheer(); this.cheer = 4; this.taunt('newBest', 4); }
       if (res.isBest) { this.myBest = res.entry; this.bestPill.textContent = this.bestText(); }
