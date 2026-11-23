@@ -103,6 +103,23 @@ src/
     moles.js               Mole Patrol
     cafe.js                Crumpet Café
     race.js                Grand Gnome Prix (the cars, the track and the trophies shelf)
+    rage.js                Gnomageddon, the grown-ups' secret race (see below)
     gardenRound.js         clears the garden for games played on the lawn
     shop.js, wardrobe.js, garden.js, parent.js
+  rage/
+    config.js              the secret code and the leaderboard's address
+    sentences.js           what you type in Gnomageddon  ← add sentences here!
+    board.js               the leaderboard client (and the score formula)
+leaderboard/               the Cloudflare Worker + database for Gnomageddon's scores
 ```
+
+## For grown-ups: Gnomageddon 🔥
+
+A secret, meaner Grand Gnome Prix for adults having typing speed contests. On the garden screen, type **gnomageddon** (or open the game with `#gnomageddon` on the end of the address, which works on a fresh computer too).
+
+- Spiked cars at dusk, rude critter rivals (Pincushion, Nutcase and Hare Trigger), sparks and SMASH! when you overtake, and a gnome in sunglasses with a lot to say.
+- You type **complete sentences** with capitals and all the punctuation. No finger hints and no on-screen keyboard. Pick a set: *Pride & Prejudice* (chapter one from the top every race, so everyone types the same text), *Famous First Lines*, *Gnome Noir*, *Per My Last Email*, *Nature Documentary*, *Trash Talk*, *Strongly Worded Letters*, *Villain Monologues*, or *Chaos Mix*.
+- Enter your initials. **Score = WPM × accuracy²** (80 WPM at 95% scores 72). Every finished race goes on the leaderboard: the top scores at each race length, and each set of initials' full history.
+- It never touches the kid's save: no key levels, acorns, trophies or history.
+
+Scores stay in the browser until you set up the shared leaderboard on Cloudflare: see [leaderboard/README.md](leaderboard/README.md). To change the secret code, edit `src/rage/config.js`.

@@ -1,0 +1,15 @@
+# Gnomageddon leaderboard: a tiny Cloudflare Worker with a D1 (SQLite) database.
+# See leaderboard/README.md for setup.
+name = "gnomageddon-leaderboard"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "gnomageddon"
+database_id = "PASTE-YOUR-DATABASE-ID-HERE"   # from `npx wrangler d1 create gnomageddon`
+
+[vars]
+# Which web page may post scores. "*" is fine for a game among friends;
+# set it to your game's address (e.g. "https://you.github.io") to lock it down a bit.
+ALLOWED_ORIGIN = "*"

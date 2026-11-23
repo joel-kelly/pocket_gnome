@@ -36,29 +36,30 @@ const METERS = 10;              // track units per meter (for the gaps on the le
 
 // The rivals. Each race they get three random speeds, from slow up to a bit
 // faster than your best, so some races you'll smoke them and some you won't.
-const RIVALS = [
+export const RIVALS = [
   { id: 'hedgehog', emo: '🦔', name: 'Hedgehog', body: '#3f9a4a', accent: '#f4d03f', num: 2, wave: 3 },
   { id: 'squirrel', emo: '🐿️', name: 'Squirrel', body: '#e8823a', accent: '#fbf7ee', num: 3, wave: 2 },
   { id: 'bunny', emo: '🐰', name: 'Bunny', body: '#8a5ad8', accent: '#f19bc0', num: 4, wave: 2 },
 ];
-export function rivalSpeeds(best, rand = Math.random) {
+export function rivalSpeeds(best, rand = Math.random, n = RIVALS.length) {
   const base = best > 0 ? best : 12;
   const lo = Math.max(5, Math.round(base * 0.5));
   const hi = Math.max(lo + 6, Math.round(base * 1.15) + 1);
   const gap = Math.min(3, Math.floor((hi - lo) / 4)); // keep them from bunching up on one speed
   let picks = [];
   for (let tries = 0; tries < 50; tries++) {
-    picks = RIVALS.map(() => lo + Math.floor(rand() * (hi - lo + 1)));
+    picks = Array.from({ length: n }, () => lo + Math.floor(rand() * (hi - lo + 1)));
     const sorted = [...picks].sort((a, b) => a - b);
     if (sorted[1] - sorted[0] >= gap && sorted[2] - sorted[1] >= gap) break;
   }
   return picks;
 }
-const ordinal = (n) => n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th');
-const MEDAL = ['🥇', '🥈', '🥉', '🏁'];
+export const ordinal = (n) => n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th');
+export const MEDAL = ['🥇', '🥈', '🥉', '🏁'];
 
 // ---------- models ----------
 const CARBON = '#2a2628', SILVER = '#c9ced8', GOLD = '#e2b93b', WHITE = '#fbf7ee';
+const STEEL = '#8d939c', TIP = '#e8ecf2';
 const DIGITS = {
   1: ['010', '110', '010', '010', '111'], 2: ['111', '001', '111', '100', '111'],
   3: ['111', '001', '011', '001', '111'], 4: ['101', '101', '111', '001', '001'],
@@ -67,7 +68,7 @@ const DIGITS = {
 // An open-wheel racer facing +x, centered on z = 0, sitting on y = 0. Wheels are separate (they spin).
 // The driver sits in the cockpit at COCKPIT.
 const COCKPIT = [-3, 2, 0];
-function carBody(main, accent, num) {
+function carBody(main, accent, num, spiky = false) {
   const m = new VoxelModel(null);
   m.box(-30, 1, -8, 31, 2, 8, CARBON);                                   // floor
   // nose: tapers and drops from the cockpit to the front wing, with a stripe down the middle
@@ -117,11 +118,33 @@ function carBody(main, accent, num) {
   m.box(-33, 1, -8, -30, 5, 8, CARBON);                                   // diffuser
   m.box(-32, 6, -1, -31, 8, 1, '#4a4446');                                // exhaust
   m.set(-32, 3, 0, '#ff4a3a'); m.set(-32, 3, -1, '#ff4a3a');              // rain light
+  if (spiky) addSpikes(m, accent);
   return m;
+}
+
+// The grown-up cars (see rage.js) come with optional extras: a ram, spikes everywhere.
+function addSpikes(m, accent) {
+  // a spiked battering ram across the front wing
+  m.box(36, 2, -13, 38, 6, 13, CARBON);
+  for (let z = -12; z <= 11; z += 6) {
+    m.box(38, 3, z, 40, 5, z + 2, STEEL);
+    for (let i = 0; i < 4; i++) m.set(40 + i, 3 + (i > 1 ? 1 : 0), z + (i > 2 ? 1 : 0), i === 3 ? TIP : STEEL);
+  }
+  // a mohawk of spikes along the airbox and engine cover
+  for (let x = -18; x <= -10; x += 3) for (let y = 14; y < 18; y++) m.set(x, y, 0, y === 17 ? TIP : STEEL);
+  for (let x = -28; x <= -22; x += 3) { const top = Math.round(12 - ((-19 - x) / 12) * 6); for (let y = 0; y < 3; y++) m.set(x, top + y, 0, y === 2 ? TIP : STEEL); }
+  // spikes poking out of the sidepods, and riveted armor stripes
+  for (const s of [-1, 1]) {
+    const zf = s > 0 ? 10 : -11;
+    for (let x = -14; x <= 2; x += 5) for (let i = 1; i <= 3; i++) m.set(x, 5, zf + s * i, i === 3 ? TIP : STEEL);
+    for (let x = -16; x < 4; x += 2) m.set(x, 8, zf - s, accent);
+  }
+  // horns on the rear wing endplates
+  for (const z of [-15, 14]) for (let y = 19; y < 23; y++) m.set(-30 - (y - 19), y, z, y === 22 ? TIP : STEEL);
 }
 // A big chunky wheel around its axle (the z axis), centered at the origin, outside face toward +z.
 // The tire stays put and only the rim spins: a spinning blocky circle looks wobbly.
-function wheelModels(R, W, stripe) {
+function wheelModels(R, W, stripe, spiky = false) {
   const tire = new VoxelModel(null), rim = new VoxelModel(null);
   const r0 = Math.ceil(R), RIM = R - 2.2;
   for (let x = -r0; x < r0; x++) for (let y = -r0; y < r0; y++) {
@@ -135,6 +158,7 @@ function wheelModels(R, W, stripe) {
     }
     if (d <= RIM - 0.4) rim.set(x, y, W / 2 - 1, d < 1.3 ? GOLD : Math.floor((a + Math.PI) / (Math.PI / 3)) % 2 ? SILVER : '#8a909a'); // spokes
     if (d < 1.3) rim.set(x, y, W / 2, GOLD);                                                          // hub cap
+    if (spiky && d < 1.3) for (let z = W / 2 + 1; z < W / 2 + 5; z++) rim.set(x, y, z, z === W / 2 + 4 ? TIP : STEEL); // a hub spike
   }
   return { tire, rim };
 }
@@ -148,14 +172,14 @@ const paintMat = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness:
 const glazeLike = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.32, clearcoat: 1, clearcoatRoughness: 0.06 });
 const tireMat = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.45, clearcoat: 0.4 });
 const shiny = (model, mat) => { const m = new THREE.Mesh(buildGeometry(model, { jitter: 0.03 }), mat); m.castShadow = true; m.receiveShadow = true; return m; };
-function buildCar(main, accent, num) {
+export function buildCar(main, accent, num, spiky = false) {
   const group = new THREE.Group();
   const lean = new THREE.Group();           // tilts and bounces; the wheels stay on the road
   group.add(lean);
-  const body = shiny(carBody(main, accent, num), paintMat);
+  const body = shiny(carBody(main, accent, num, spiky), paintMat);
   lean.add(body);
   const wheels = WHEELS.map((w) => {
-    const { tire, rim } = wheelModels(w.R, w.W, accent === WHITE ? '#e2b93b' : accent);
+    const { tire, rim } = wheelModels(w.R, w.W, accent === WHITE ? '#e2b93b' : accent, spiky);
     const holder = new THREE.Group();
     holder.position.set(w.x, w.R, w.z);
     if (w.z < 0) holder.scale.z = -1;       // far-side wheels face the other way
@@ -214,6 +238,20 @@ function tireStack(m, x, z, n, band) {
   for (let i = 0; i < n; i++) m.ring(x, z, 1.3, 3.2, i * 2, i * 2 + 2, i % 2 ? band : CARBON);
 }
 
+// How the track looks. The grown-up race (rage.js) swaps in its own.
+export const KID_LOOK = {
+  sky: ['#8cc6ee', '#d6ecf2', '#eef4e0'], fog: '#dcefe9', meadow: '#68a849', asphalt: '#61656d',
+  kerb: '#e8402e', line: '#f3f0e6', barrier: '#e8402e', roof: '#d23c3a', spiky: false,
+  sign: { text: 'GRAND GNOME PRIX', bg: '#2a2628', fg: '#f4d03f' },
+  gantry: { text: 'GRAND GNOME PRIX', bg: '#d23c3a', fg: '#fbf7ee' },
+  banners: [
+    ['GNOME DEPOT', { bg: '#d23c3a', fg: '#fbf7ee', border: '#f4d03f' }],
+    ['CRUMPET CAFE', { bg: '#f3e8d0', fg: '#6a4220', border: '#8a5a30' }],
+    ['DANDELION POP', { bg: '#f4d03f', fg: '#2f6a2c', border: '#3f9a4a' }],
+    ['ACORN BANK', { bg: '#3a6fc4', fg: '#fbf7ee', border: '#fbf7ee' }],
+  ],
+};
+
 export class RaceScreen {
   constructor(game) {
     this.game = game;
@@ -221,23 +259,44 @@ export class RaceScreen {
   }
   get state() { return this.game.state; }
 
+  // ---------- hooks (the grown-up race overrides these) ----------
+  get look() { return KID_LOOK; }
+  get rivalDefs() { return RIVALS; }
+  get title() { return '🏎️ GRAND GNOME PRIX'; }
+  get lightsNote() { return 'Fingers on Gnome Row... wait for the lights to go out!'; }
+  bestText() { return `Best: ${this.state.best.race || 0} WPM`; }
+  rivalBase() { return this.state.best.race || 0; }
+  speedoTop() { return Math.max(60, Math.ceil(((this.state.best.race || 0) * 1.4) / 20) * 20); }
+  myName() { return this.state.gnomeName || 'You'; }
+  carPaint() {
+    const p = this.state.paint;
+    return [p.hat, p.hat.toLowerCase() === p.shirt.toLowerCase() ? WHITE : p.shirt];
+  }
+  lengthTip(l) { return l.secs < RECORD_SECS ? 'A quick warm-up: earns acorns, but top speeds and trophies need 1 minute or more' : ''; }
+  saveLength(secs) { this.state.settings.raceSecs = secs; this.game.S.save(); }
+  taunt(key, secs) { this.game.line(key, secs); }
+  padOpts() { return {}; }
+  overtook() { sfx.vroom(); this.cheer = 1.2; sfx.cheer(); if (Math.random() < 0.6) this.taunt('raceOvertake', 2); }
+  gotPassed() { if (Math.random() < 0.4) this.taunt('racePassed', 2); }
+
   build() {
     const scene = this.scene = new THREE.Scene();
-    scene.background = skyTexture('#8cc6ee', '#d6ecf2', '#eef4e0');
-    scene.fog = new THREE.Fog('#dcefe9', 380, 1000);
+    const look = this.look;
+    scene.background = skyTexture(...look.sky);
+    scene.fog = new THREE.Fog(look.fog, 380, 1000);
     this.camera = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 1, 1400);
     this.camera.position.set(72, 66, 222);
     this.camera.lookAt(4, 6, -36);
     this.camHome = this.camera.position.clone();
-    const L = addLights(scene, this.game.world.renderer, { sunPos: [60, 110, 80], shadowSize: 80 });
+    const L = this.lights = addLights(scene, this.game.world.renderer, { sunPos: [60, 110, 80], shadowSize: 80 });
     L.sun.target.position.set(0, 0, -10);
     this.fx = new FX(scene);
 
     // Grass everywhere, and the track (the moving parts are in the scenery tiles).
-    const meadow = new THREE.Mesh(new THREE.PlaneGeometry(4000, 2000), new THREE.MeshLambertMaterial({ color: '#68a849' }));
+    const meadow = new THREE.Mesh(new THREE.PlaneGeometry(4000, 2000), new THREE.MeshLambertMaterial({ color: look.meadow }));
     meadow.rotation.x = -Math.PI / 2; meadow.position.y = -0.1; meadow.receiveShadow = true;
     scene.add(meadow);
-    const asphalt = new THREE.Mesh(new THREE.PlaneGeometry(4000, TRACK_NEAR - TRACK_FAR), new THREE.MeshLambertMaterial({ color: '#61656d' }));
+    const asphalt = new THREE.Mesh(new THREE.PlaneGeometry(4000, TRACK_NEAR - TRACK_FAR), new THREE.MeshLambertMaterial({ color: look.asphalt }));
     asphalt.rotation.x = -Math.PI / 2; asphalt.position.set(0, -0.05, (TRACK_NEAR + TRACK_FAR) / 2); asphalt.receiveShadow = true;
     scene.add(asphalt);
 
@@ -267,8 +326,8 @@ export class RaceScreen {
 
     // Rival cars, each with a critter at the wheel.
     this.crit = Object.fromEntries(CRITTERS.map((c) => [c.id, c.build()]));
-    this.rivalCars = RIVALS.map((r, i) => {
-      const car = buildCar(r.body, r.accent, r.num);
+    this.rivalCars = this.rivalDefs.map((r, i) => {
+      const car = buildCar(r.body, r.accent, r.num, look.spiky);
       const { model, head } = this.crit[r.id];
       const driver = shiny(model, glazeLike);
       driver.scale.setScalar(1.25);
@@ -286,14 +345,15 @@ export class RaceScreen {
   // a grandstand full of critters, billboards, toadstools and trees on the far side.
   // The same geometry is shared by every copy.
   buildTile() {
+    const look = this.look;
     if (!this.tileGeo) {
       const m = new VoxelModel(null);
       // kerbs and lane lines
       for (let x = 0; x < TILE; x++) {
-        const c = Math.floor(x / 8) % 2 ? '#e8402e' : WHITE;
+        const c = Math.floor(x / 8) % 2 ? look.kerb : WHITE;
         for (let z = TRACK_NEAR; z < TRACK_NEAR + 4; z++) m.set(x, -1, z, c);
         for (let z = TRACK_FAR - 4; z < TRACK_FAR; z++) m.set(x, -1, z, c);
-        if (x % 40 < 16) for (const lz of [-13, -39, -65]) m.set(x, -1, lz, '#f3f0e6');
+        if (x % 40 < 16) for (const lz of [-13, -39, -65]) m.set(x, -1, lz, look.line);
       }
       // near side: grass verge with tire stacks, hay bales, cones and flowers
       for (let x = 0; x < TILE; x += 2) for (let z = TRACK_NEAR + 4; z < 70; z += 2) {
@@ -306,7 +366,7 @@ export class RaceScreen {
         m.cone(x + 100, 31, 1.8, 0.4, 0, 5, (xx, y) => (y === 2 ? WHITE : '#ff8a2a'));  // cone
       }
       // far side: a striped barrier wall
-      m.box(0, 0, TRACK_FAR - 8, TILE, 5, TRACK_FAR - 5, (x, y) => (y === 4 ? WHITE : Math.floor(x / 16) % 2 ? '#e8402e' : WHITE));
+      m.box(0, 0, TRACK_FAR - 8, TILE, 5, TRACK_FAR - 5, (x, y) => (y === 4 ? WHITE : Math.floor(x / 16) % 2 ? look.barrier : WHITE));
       // The far scenery is big and simple, so it's built from double-size blocks (half the coordinates).
       const B = new VoxelModel(null);
       // the grandstand: wooden tiers stepping up and back, a back wall and a stripy roof
@@ -320,8 +380,8 @@ export class RaceScreen {
       const ZB = Z0 - 20;
       B.box(S0, 0, ZB - 1, S1, 20, ZB, (x, y) => (y > 18 ? '#6a4220' : '#7a4a24'));
       for (let x = S0; x < S1; x += 20) B.box(x, 0, Z0 - 1, x + 1, 20, Z0, '#6a4220'); // roof posts
-      B.box(S0 - 2, 20, ZB - 1, S1 + 2, 21, Z0 + 2, (x) => (Math.floor(x / 5) % 2 ? '#d23c3a' : WHITE));
-      for (let x = S0 - 2; x < S1 + 2; x++) if (x % 5 < 2) B.set(x, 19, Z0 + 1, Math.floor(x / 5) % 2 ? '#d23c3a' : WHITE); // scalloped edge
+      B.box(S0 - 2, 20, ZB - 1, S1 + 2, 21, Z0 + 2, (x) => (Math.floor(x / 5) % 2 ? look.roof : WHITE));
+      for (let x = S0 - 2; x < S1 + 2; x++) if (x % 5 < 2) B.set(x, 19, Z0 + 1, Math.floor(x / 5) % 2 ? look.roof : WHITE); // scalloped edge
       for (let x = S0 + 10; x < S1; x += 30) { // flags on the roof
         for (let y = 21; y < 28; y++) B.set(x, y, ZB + 2, '#d8d4cc');
         B.box(x + 1, 25, ZB + 2, x + 5, 28, ZB + 3, ['#f4d03f', '#3a6fc4', '#3f9a4a', '#e8402e'][Math.floor(x / 30) % 4]);
@@ -334,12 +394,7 @@ export class RaceScreen {
       this.tileGeo = buildGeometry(m, { jitter: 0.06 });
       // Crowd critters: one geometry per kind, shared by every seat.
       this.crowdGeo = Object.fromEntries(CRITTERS.map((c) => { const g = buildGeometry(c.build().model, { jitter: 0.05 }); return [c.id, g]; }));
-      this.banners = [
-        ['GNOME DEPOT', { bg: '#d23c3a', fg: '#fbf7ee', border: '#f4d03f' }],
-        ['CRUMPET CAFE', { bg: '#f3e8d0', fg: '#6a4220', border: '#8a5a30' }],
-        ['DANDELION POP', { bg: '#f4d03f', fg: '#2f6a2c', border: '#3f9a4a' }],
-        ['ACORN BANK', { bg: '#3a6fc4', fg: '#fbf7ee', border: '#fbf7ee' }],
-      ];
+      this.banners = look.banners;
     }
     const group = new THREE.Group();
     const scenery = new THREE.Mesh(this.tileGeo, voxelMaterial);
@@ -349,7 +404,7 @@ export class RaceScreen {
     big.receiveShadow = true; big.castShadow = true;
     group.add(scenery, big);
     // the big sign on the grandstand roof, ads on the wall and billboards
-    const sign = banner('GRAND GNOME PRIX', 200, 18, { w: 1024, h: 92, size: 44, bg: '#2a2628', fg: '#f4d03f', check: true });
+    const sign = banner(look.sign.text, 200, 18, { w: 1024, h: 92, size: 44, bg: look.sign.bg, fg: look.sign.fg, check: true });
     sign.position.set(280, 51, -147);
     group.add(sign);
     for (let i = 0; i < 8; i++) {
@@ -407,7 +462,8 @@ export class RaceScreen {
     const mesh = buildMesh(m, { jitter: 0.04 });
     mesh.receiveShadow = true;
     g.add(mesh);
-    const sign = banner('GRAND GNOME PRIX', 110, 13, { w: 1024, h: 120, size: 50, bg: '#d23c3a', fg: '#fbf7ee', check: true });
+    const { gantry } = this.look;
+    const sign = banner(gantry.text, 110, 13, { w: 1024, h: 120, size: 50, bg: gantry.bg, fg: gantry.fg, check: true });
     sign.rotation.y = Math.PI / 2;
     sign.position.set(3.1, 40, (Z0 + TRACK_NEAR - 4) / 2);
     g.add(sign);
@@ -421,12 +477,11 @@ export class RaceScreen {
     world.active = { scene: this.scene, camera: this.camera };
     world.resize();
     // The gnome's car is painted like its hat.
-    const p = this.state.paint;
-    const carKey = `${p.hat}|${p.shirt}`;
+    const [main, accent] = this.carPaint();
+    const carKey = `${main}|${accent}`;
     if (this.carKey !== carKey) {
       if (this.car) { this.scene.remove(this.car.group); disposeCar(this.car); }
-      const accent = p.hat.toLowerCase() === p.shirt.toLowerCase() ? WHITE : p.shirt;
-      this.car = buildCar(p.hat, accent, 1);
+      this.car = buildCar(main, accent, 1, this.look.spiky);
       this.carKey = carKey;
       this.scene.add(this.car.group);
     }
@@ -440,22 +495,22 @@ export class RaceScreen {
     this.phase = 'ready';
     this.resetRace();
     this.tags = h('div', { class: 'race-tags' });
-    this.tagEls = RIVALS.map((r) => { const el = h('div', { class: 'race-tag hidden' }); this.tags.append(el); return el; });
+    this.tagEls = this.rivalDefs.map((r) => { const el = h('div', { class: 'race-tag hidden' }); this.tags.append(el); return el; });
     this.card = h('div', { class: 'type-card race' });
     this.timePill = h('div', { class: 'pill' }, `⏱ ${this.raceSecs}`);
     this.lapPill = h('div', { class: 'pill' }, '🏁 Lap 1');
-    this.bestPill = h('div', { class: 'pill' }, `Best: ${this.state.best.race || 0} WPM`);
+    this.bestPill = h('div', { class: 'pill' }, this.bestText());
     this.board = h('div', { class: 'race-board' });
     this.speedo = h('div', { class: 'speedo' }, h('div', { class: 'sp-dial' }), h('div', { class: 'sp-needle' }), h('div', { class: 'sp-num' }, '0'), h('div', { class: 'sp-unit' }, 'WPM'));
     this.root.replaceChildren(this.tags, this.board, this.speedo, h('div', { class: 'type-screen race' },
-      h('div', { class: 'g-top' }, h('div', { class: 'pill title' }, '🏎️ GRAND GNOME PRIX'), this.timePill, this.lapPill, this.bestPill,
+      h('div', { class: 'g-top' }, h('div', { class: 'pill title' }, this.title), this.timePill, this.lapPill, this.bestPill,
         button('Quit', () => this.quit(), 'small red')),
       this.card));
     this.speedoShown = null;
     this.showReady();
     this.updateBoard(true);
     this.setSpeedo(0);
-    this.game.line('raceStart', 4);
+    this.taunt('raceStart', 4);
   }
   exit() {
     const { world, gnome } = this.game;
@@ -494,8 +549,8 @@ export class RaceScreen {
     this.wobble = 0;
     this.geraldAt = 18 + Math.random() * 10;
     this.geraldT = -1;
-    const speeds = rivalSpeeds(this.state.best.race || 0);
-    this.rivals = RIVALS.map((r, i) => ({ ...r, wpm: speeds[i], dist: 0, car: this.rivalCars[i] }));
+    const speeds = rivalSpeeds(this.rivalBase(), Math.random, this.rivalDefs.length);
+    this.rivals = this.rivalDefs.map((r, i) => ({ ...r, wpm: speeds[i], dist: 0, car: this.rivalCars[i] }));
     this.ahead = this.rivals.map(() => false);
   }
 
@@ -515,7 +570,7 @@ export class RaceScreen {
   lengthPicker() {
     const el = h('div', { class: 'tabs race-len' }, ...RACE_LENGTHS.map((l, i) => h('button', {
       class: 'tab' + (l.secs === this.raceSecs ? ' on' : ''),
-      title: l.secs < RECORD_SECS ? 'A quick warm-up: earns acorns, but top speeds and trophies need 1 minute or more' : '',
+      title: this.lengthTip(l),
       onclick: () => this.setLength(l.secs),
     }, `${i + 1}. ${l.name} · ${l.label}`)));
     this.lenEl = el;
@@ -524,8 +579,7 @@ export class RaceScreen {
   setLength(secs) {
     if (secs === this.raceSecs) return;
     sfx.click();
-    this.state.settings.raceSecs = secs;
-    this.game.S.save();
+    this.saveLength(secs);
     this.lenEl?.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('on', RACE_LENGTHS[i].secs === secs));
     if (this.phase === 'ready' || this.phase === 'results') this.timePill.textContent = `⏱ ${secs}`;
   }
@@ -554,7 +608,7 @@ export class RaceScreen {
     this.lapPill.textContent = '🏁 Lap 1';
     this.updateBoard(true);
     const lights = [0, 1, 2, 3, 4].map(() => h('i'));
-    const note = h('div', { class: 'mole-wait' }, 'Fingers on Gnome Row... wait for the lights to go out!');
+    const note = h('div', { class: 'mole-wait' }, this.lightsNote);
     this.card.replaceChildren(h('div', { class: 'start-lights' }, ...lights), note);
     engine.start();
     engine.set(0.05);
@@ -577,7 +631,6 @@ export class RaceScreen {
   }
 
   start() {
-    this.picker = new TextPicker(this.state);
     this.phase = 'play';
     this.startTime = performance.now(); // a speed test runs on the real clock, even if frames are slow
     this.pad = new TypePad({
@@ -585,11 +638,16 @@ export class RaceScreen {
       onKey: (k) => this.onPadKey(k),
       onWord: (w) => this.onWord(w),
       onLine: () => this.nextLine(),
+      ...this.padOpts(),
     });
     this.card.replaceChildren(this.pad.el);
+    this.beginText();
+    this.game.say('GO GO GO!', 1.5);
+  }
+  beginText() {
+    this.picker = new TextPicker(this.state);
     this.lineNext = this.picker.line(24);
     this.nextLine();
-    this.game.say('GO GO GO!', 1.5);
   }
   nextLine() {
     const now = this.lineNext;
@@ -613,7 +671,7 @@ export class RaceScreen {
     this.cleanRun = 0;
     this.fx.puff(this.car.group.localToWorld(new THREE.Vector3(-33, 8, 0)), 4, '#5a5a5a');
     this.wrongRow++;
-    if (this.wrongRow >= 3) { this.wrongRow = 0; this.game.line('typeWrong', 2); }
+    if (this.wrongRow >= 3) { this.wrongRow = 0; this.taunt('typeWrong', 2); }
     if (!this.game.gnome.busy) this.game.gnome.act('shake');
   }
   onWord({ clean }) {
@@ -625,7 +683,7 @@ export class RaceScreen {
       this.turbo = 0.8;
       this.fx.word(this.car.group.localToWorld(new THREE.Vector3(0, 36, 0)), 'TURBO!', '#e8823a');
       this.game.gnome.act('hop');
-      this.game.line('raceTurbo', 2);
+      this.taunt('raceTurbo', 2);
     }
   }
 
@@ -686,8 +744,8 @@ export class RaceScreen {
       this.rivals.forEach((r, i) => {
         const ahead = this.dist > r.dist + 8;
         const behind = this.dist < r.dist - 8;
-        if (ahead && !this.ahead[i]) { this.ahead[i] = true; if (this.elapsed > 2) { sfx.vroom(); this.cheer = 1.2; sfx.cheer(); if (Math.random() < 0.6) this.game.line('raceOvertake', 2); } }
-        else if (behind && this.ahead[i]) { this.ahead[i] = false; if (Math.random() < 0.4) this.game.line('racePassed', 2); }
+        if (ahead && !this.ahead[i]) { this.ahead[i] = true; if (this.elapsed > 2) this.overtook(r, i); }
+        else if (behind && this.ahead[i]) { this.ahead[i] = false; this.gotPassed(r, i); }
       });
     }
     // laps
@@ -765,7 +823,7 @@ export class RaceScreen {
     // Gerald pops by now and then, flapping very hard to keep up
     if (this.phase === 'play') {
       this.geraldAt -= dt;
-      if (this.geraldAt <= 0 && this.geraldT < 0) { this.geraldT = 0; this.geraldAt = 22 + Math.random() * 14; this.gerald.group.visible = true; sfx.coo(); if (Math.random() < 0.6) this.game.line('raceGerald', 2.5); }
+      if (this.geraldAt <= 0 && this.geraldT < 0) { this.geraldT = 0; this.geraldAt = 22 + Math.random() * 14; this.gerald.group.visible = true; sfx.coo(); if (Math.random() < 0.6) this.taunt('raceGerald', 2.5); }
     }
     if (this.geraldT >= 0) {
       this.geraldT += dt;
@@ -791,7 +849,7 @@ export class RaceScreen {
   }
 
   setSpeedo(wpm) {
-    const max = Math.max(60, Math.ceil(((this.state.best.race || 0) * 1.4) / 20) * 20);
+    const max = this.speedoTop();
     const show = Math.round(wpm);
     if (show === this.speedoShown && max === this.speedoMax) return;
     this.speedoShown = show; this.speedoMax = max;
@@ -803,7 +861,7 @@ export class RaceScreen {
 
   // Who's winning: everyone sorted by how far they've gone, with gaps in meters.
   standings() {
-    const me = { me: true, emo: '🍄', name: this.state.gnomeName || 'You', dist: this.phase === 'results' ? this.chars * PER_CHAR : this.dist };
+    const me = { me: true, emo: '🍄', name: this.myName(), dist: this.phase === 'results' ? this.chars * PER_CHAR : this.dist };
     const all = [me, ...this.rivals.map((r) => ({ emo: r.emo, name: r.name, dist: this.phase === 'results' ? r.final ?? r.dist : r.dist, wpm: r.wpm }))];
     return all.sort((a, b) => b.dist - a.dist);
   }

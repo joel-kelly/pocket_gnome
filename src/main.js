@@ -13,6 +13,8 @@ import { BeetScreen } from './screens/beet.js';
 import { MolesScreen } from './screens/moles.js';
 import { CafeScreen } from './screens/cafe.js';
 import { RaceScreen } from './screens/race.js';
+import { RageScreen } from './screens/rage.js';
+import { SECRET_CODE } from './rage/config.js';
 
 const state = S.load();
 setSoundEnabled(state.settings.sound);
@@ -118,6 +120,7 @@ game.screens.beet = new BeetScreen(game);
 game.screens.moles = new MolesScreen(game);
 game.screens.cafe = new CafeScreen(game);
 game.screens.race = new RaceScreen(game);
+game.screens.rage = new RageScreen(game);
 
 game.applyOutfit();
 game.applyMood();
@@ -136,8 +139,23 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') box?.querySelector('.btn.x')?.click();
     return;
   }
+  if (secretCode(e)) return;
   game.screen?.onKey?.(e);
 });
+
+// The grown-ups' secret: type the code on the garden screen (or add #gnomageddon to the URL).
+let typed = '';
+function secretCode(e) {
+  if (game.screen !== game.screens.home || e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) { typed = ''; return false; }
+  typed = (typed + e.key.toLowerCase()).slice(-SECRET_CODE.length);
+  if (typed !== SECRET_CODE) return false;
+  typed = '';
+  sfx.vroom();
+  game.go('rage');
+  return true;
+}
+const wantsRage = () => location.hash.slice(1).toLowerCase() === SECRET_CODE;
+window.addEventListener('hashchange', () => { if (wantsRage() && game.screen !== game.screens.rage) game.go('rage'); });
 
 // ---------- main loop ----------
 let last = performance.now();
@@ -170,7 +188,8 @@ function step(now) {
 }
 
 document.getElementById('loading').remove();
-if (!state.onboarded) game.go('depot');
+if (wantsRage()) game.go('rage');
+else if (!state.onboarded) game.go('depot');
 else if (!state.placed) game.go('placement');
 else game.go('home', { greet: true });
 requestAnimationFrame(frame);

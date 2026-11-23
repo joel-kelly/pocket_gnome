@@ -14,6 +14,7 @@ export class TypePad {
    * opts.stage: stage being practiced (for which keys look unlocked)
    * opts.onKey({ ok, ch, secs, timed }), opts.onWord({ word, secs, clean }), opts.onLine()
    * opts.record: false to not count keys toward levels (e.g. the placement check keeps its own score)
+   * opts.hints: false for no finger hints; opts.keyboard: false to hide the on-screen keyboard (grown-up mode)
    */
   constructor(opts) {
     this.opts = opts;
@@ -27,7 +28,9 @@ export class TypePad {
     this.hintEl = h('div', { class: 'tp-hint' }, ' ');
     this.capsEl = h('div', { class: 'tp-caps hidden' }, '⇪ Caps Lock is on! Press it to turn it off.');
     this.kb = this.buildKeyboard();
-    this.el.append(this.sign, this.capsEl, this.hintEl, this.kb);
+    this.el.append(this.sign, this.capsEl);
+    if (opts.hints !== false) this.el.append(this.hintEl);
+    if (opts.keyboard !== false) this.el.append(this.kb);
     this.text = '';
     this.i = 0;
     this.stats = { right: 0, wrong: 0, chars: 0, start: 0, last: 0, words: 0, cleanWords: 0 };
@@ -77,7 +80,7 @@ export class TypePad {
     const spans = this.lineEl.children;
     for (let j = 0; j < spans.length; j++) spans[j].className = 'ch' + (this.text[j] === ' ' ? ' sp' : '') + (j < this.i ? ' done' : j === this.i ? ' cur' : '');
     this.clearHint();
-    if (this.done) return;
+    if (this.done || this.opts.hints === false) return;
     const ch = this.expected;
     const delay = hintDelay(this.state, keyForChar(ch));
     if (delay === 0) this.showHint();
@@ -85,7 +88,7 @@ export class TypePad {
   }
 
   showHint() {
-    if (this.done) return;
+    if (this.done || this.opts.hints === false) return;
     const ch = this.expected;
     const key = keyForChar(ch);
     const els = [this.keyEls[key]];
