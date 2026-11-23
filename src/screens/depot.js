@@ -15,7 +15,7 @@ const NEIGHBORS = [
   { hat: '#3f9a4a', shirt: '#c8423a', beard: '#b9b6b0', skin: '#e0a97e', style: 'beard' },
   { hat: '#7a4bb8', shirt: '#e8b83a', beard: '#7a4a2a', skin: '#f1c29c', style: 'braids' },
 ];
-const NAMES = ['Gnorman', 'Gnorbert', 'Gnelly', 'Gnoah', 'Gnancy', 'Gnatalie', 'Gnigel', 'Gnora', 'Gnicholas', 'Gnaomi', 'Pip', 'Bramble', 'Thistle', 'Clover', 'Pebble', 'Mossy'];
+const NAMES = ['Gnorman', 'Gnorbert', 'Gnelly', 'Gnoah', 'Gnancy', 'Gnatalie', 'Gnigel', 'Gnora', 'Gnicholas', 'Gnaomi', 'Gnome of your business',];
 const PARTS = [['hat', 'Hat'], ['shirt', 'Shirt'], ['beard', 'Hair'], ['skin', 'Face']];
 
 export class DepotScreen {
@@ -102,7 +102,7 @@ export class DepotScreen {
     }, label)));
     this.root.replaceChildren(h('div', { class: 'depot-card' },
       h('div', { class: 'sign' }, 'GNOME DEPOT'),
-      h('p', {}, 'Down the clearance aisle, between the flowerpots, stands one little garden gnome. It looks ordinary. It is NOT ordinary. Give it a fresh coat of paint and see what happens...'),
+      h('p', {}, 'Down the clearance aisle, between the flowerpots, stands one little garden gnome. Give it a fresh coat of paint and see what happens...'),
       h('label', { for: 'kid-name' }, "What's YOUR name?"), this.kid,
       h('label', {}, 'Paint your gnome'), h('div', { class: 'paint-row' }, h('span', { class: 'lbl' }, 'Style'), styles), ...rows,
       h('label', { for: 'gnome-name' }, 'Name your gnome'), h('div', { class: 'name-row' }, this.name, dice),
@@ -143,7 +143,7 @@ export class DepotScreen {
     sfx.unlock();
     await gnome.act('shake');
     gnome.act('cheer');
-    this.game.say("Oh! Oh my gnome-ness! That tickles! Hello there!", 4);
+    this.game.say("Oh! That tickles! Hello there!", 4);
   }
 
   takeHome() {

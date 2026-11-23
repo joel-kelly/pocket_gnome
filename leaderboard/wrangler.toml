@@ -7,7 +7,7 @@ compatibility_date = "2025-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "gnomageddon"
-database_id = "PASTE-YOUR-DATABASE-ID-HERE"   # from `npx wrangler d1 create gnomageddon`
+database_id = "060eae4a-fc73-4fc4-bbde-e237e53fcefb"   # from `npx wrangler d1 create gnomageddon`
 
 [vars]
 # Which web page may post scores. "*" is fine for a game among friends;
