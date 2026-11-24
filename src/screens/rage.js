@@ -13,6 +13,7 @@ import { SERIES, getSeries, SentenceFeed } from '../rage/sentences.js';
 import { submitScore, topScores, history as getHistory, scoreOf, cleanInitials, online, LENGTHS } from '../rage/board.js';
 
 const LINE_WIDTH = 44; // characters per line on the sign
+const AHEAD = 2;       // lines shown below the one you're typing
 const PREFS = 'pocketGnome.rage.v1';
 function loadPrefs() {
   let p = {};
@@ -104,7 +105,7 @@ export class RageScreen extends RaceScreen {
   speedoTop() { return Math.max(100, Math.ceil(((this.myBest?.wpm || 0) * 1.4) / 20) * 20); }
   myName() { return this.prefs.initials || 'Driver'; }
   carPaint() { return ['#1d1b1e', this.state.paint.hat]; }
-  padOpts() { return { record: false, hints: false, keyboard: false }; }
+  padOpts() { return { record: false, hints: false, keyboard: false, skipWord: true }; }
   taunt(key, secs) { const l = TAUNTS[key]; if (l) this.game.say(pick(l), secs); }
 
   savePrefs() { try { localStorage.setItem(PREFS, JSON.stringify(this.prefs)); } catch { /* fine */ } }
@@ -207,13 +208,14 @@ export class RageScreen extends RaceScreen {
     this.feed = new SentenceFeed(this.prefs.series, LINE_WIDTH);
     this.srcEl = h('div', { class: 'rage-src' });
     this.card.prepend(this.srcEl);
-    this.lineNext = this.feed.next();
+    this.upcoming = Array.from({ length: AHEAD + 1 }, () => this.feed.next());
     this.nextLine();
   }
+  // Every line ends in a space (the text runs on, like a paragraph), with the next few lines shown in full below.
   nextLine() {
-    const now = this.lineNext;
-    this.lineNext = this.feed.next();
-    this.pad.setText(now.text, this.lineNext.text);
+    const now = this.upcoming.shift();
+    this.upcoming.push(this.feed.next());
+    this.pad.setText(now.text + ' ', this.upcoming.map((l) => l.text).join('\n'));
     this.srcEl.textContent = now.src || getSeries(this.prefs.series).name;
   }
 
