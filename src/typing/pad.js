@@ -22,6 +22,9 @@ export class TypePad {
    * opts.mustFix: true if a line only counts once every letter is right (Mole Patrol, the café)
    * opts.record: false to not count keys toward levels (e.g. the placement check keeps its own score)
    * opts.hints: false for no finger hints; opts.keyboard: false to hide the on-screen keyboard (grown-up mode)
+   * opts.skipWord: true to let you get back on track after slipping (grown-up mode): a space mid-word jumps
+   *   to the next word (the letters skipped count as mistakes), a stray space at the start of a word is ignored,
+   *   and typing on past the end of a line without its space carries on into the next line.
    */
   constructor(opts) {
     this.opts = opts;
@@ -39,6 +42,7 @@ export class TypePad {
     if (opts.hints !== false) this.el.append(this.hintEl);
     if (opts.keyboard !== false) this.el.append(this.kb);
     this.text = '';
+    this.nextText = '';
     this.i = 0;
     this.typed = [];
     this.stats = { right: 0, wrong: 0, start: 0, last: 0, words: 0, cleanWords: 0 };
@@ -84,10 +88,11 @@ export class TypePad {
     this.lineStart = performance.now();
     this.wordStart = this.lineStart;
     this.lineEl.replaceChildren(...[...text].map((c) => h('span', { class: 'ch' + (c === ' ' ? ' sp' : '') }, c === ' ' ? '·' : c)));
+    this.nextText = next;
     this.nextEl.textContent = next;
     this.mark();
   }
-  setNext(next) { this.nextEl.textContent = next; }
+  setNext(next) { this.nextText = next; this.nextEl.textContent = next; }
   get done() { return this.i >= this.text.length; }
   get expected() { return this.text[this.i]; }
 
@@ -97,7 +102,7 @@ export class TypePad {
       const want = this.text[j], got = j < this.i ? this.typed[j] : want;
       const bad = got !== want;
       spans[j].className = 'ch' + (want === ' ' && !bad ? ' sp' : '') + (j < this.i ? (bad ? ' bad' : ' done') : j === this.i ? ' cur' : '');
-      const show = got === ' ' ? (bad ? '_' : '·') : got;
+      const show = got == null ? (want === ' ' ? '_' : want) : got === ' ' ? (bad ? '_' : '·') : got;
       if (spans[j].textContent !== show) spans[j].textContent = show;
     }
     this.clearHint();
@@ -153,6 +158,7 @@ export class TypePad {
     e.preventDefault();
     if (this.done) { this.oops(this.i - 1); return true; } // at the end with red letters left (mustFix): fix them first
     const now = performance.now();
+    if (this.opts.skipWord && !this.resync(e, now)) return true;
     const j = this.i;
     const ch = this.text[j];
     const ok = e.key === ch;
@@ -191,6 +197,45 @@ export class TypePad {
     if (!ok) this.oops(j);
     this.checkLine();
     return true;
+  }
+
+  // skipWord mode: get back onto the right letter after a slip. Returns false if the key is used up.
+  resync(e, now) {
+    const j = this.i, ch = this.text[j];
+    if (e.key === ' ' && ch !== ' ') {
+      if (j === 0 || this.text[j - 1] === ' ') return false; // stray space at the start of a word (e.g. after an extra letter): ignore it
+      const sp = this.text.indexOf(' ', j);
+      this.skipTo(sp < 0 ? this.text.length : sp, now);   // space mid-word: skip the rest of the word
+      if (this.done) { this.finishWord(now); this.mark(); this.checkLine(); return false; }
+      return true; // now the space lines up with the text's space
+    }
+    if (ch === ' ' && j === this.text.length - 1 && e.key === this.nextText[0]) {
+      // typed on past the end of the line without its space: count the space as missed and carry on into the next line
+      this.skipTo(this.text.length, now);
+      this.finishWord(now);
+      this.mark();
+      this.checkLine();
+      return !this.done && this.i === 0;
+    }
+    return true;
+  }
+  // Jump the cursor forward to `to`, counting every letter jumped over as a mistake.
+  skipTo(to, now) {
+    const from = this.i;
+    if (to <= from) return;
+    const rec = this.opts.record !== false;
+    for (let j = from; j < to; j++) {
+      if (rec && !this.recW[j]) { this.recW[j] = true; recordKey(this.state, keyForChar(this.text[j]), false); }
+      this.typed[j] = null; // nothing typed here (shown as the letter you missed, in red)
+      this.missed[j] = true;
+      this.stats.wrong++;
+    }
+    this.i = to;
+    this.stats.last = now;
+    if (!this.stats.start) this.stats.start = now;
+    this.untimed = true;
+    this.opts.onKey?.({ ok: false, ch: this.text[from], typed: null, secs: 0 });
+    for (let j = from; j < to; j++) this.oops(j);
   }
 
   // Go back one letter, or (word = true) back to the start of the word.
