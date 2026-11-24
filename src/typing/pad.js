@@ -23,8 +23,7 @@ export class TypePad {
    * opts.record: false to not count keys toward levels (e.g. the placement check keeps its own score)
    * opts.hints: false for no finger hints; opts.keyboard: false to hide the on-screen keyboard (grown-up mode)
    * opts.skipWord: true to let you get back on track after slipping (grown-up mode): a space mid-word jumps
-   *   to the next word (the letters skipped count as mistakes), a stray space at the start of a word is ignored,
-   *   and typing on past the end of a line without its space carries on into the next line.
+   *   to the next word (the letters skipped count as mistakes), and a stray space at the start of a word is ignored.
    */
   constructor(opts) {
     this.opts = opts;
@@ -42,7 +41,6 @@ export class TypePad {
     if (opts.hints !== false) this.el.append(this.hintEl);
     if (opts.keyboard !== false) this.el.append(this.kb);
     this.text = '';
-    this.nextText = '';
     this.i = 0;
     this.typed = [];
     this.stats = { right: 0, wrong: 0, start: 0, last: 0, words: 0, cleanWords: 0 };
@@ -88,11 +86,10 @@ export class TypePad {
     this.lineStart = performance.now();
     this.wordStart = this.lineStart;
     this.lineEl.replaceChildren(...[...text].map((c) => h('span', { class: 'ch' + (c === ' ' ? ' sp' : '') }, c === ' ' ? '·' : c)));
-    this.nextText = next;
     this.nextEl.textContent = next;
     this.mark();
   }
-  setNext(next) { this.nextText = next; this.nextEl.textContent = next; }
+  setNext(next) { this.nextEl.textContent = next; }
   get done() { return this.i >= this.text.length; }
   get expected() { return this.text[this.i]; }
 
@@ -208,14 +205,6 @@ export class TypePad {
       this.skipTo(sp < 0 ? this.text.length : sp, now);   // space mid-word: skip the rest of the word
       if (this.done) { this.finishWord(now); this.mark(); this.checkLine(); return false; }
       return true; // now the space lines up with the text's space
-    }
-    if (ch === ' ' && j === this.text.length - 1 && e.key === this.nextText[0]) {
-      // typed on past the end of the line without its space: count the space as missed and carry on into the next line
-      this.skipTo(this.text.length, now);
-      this.finishWord(now);
-      this.mark();
-      this.checkLine();
-      return !this.done && this.i === 0;
     }
     return true;
   }
